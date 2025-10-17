@@ -29,3 +29,8 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+.bmad-core
+.cursor
+.gemini
+.temp
+docs/

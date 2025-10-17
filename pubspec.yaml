@@ -1,7 +1,7 @@
 name: pusher_reverb_flutter
-description: "A new Flutter package project."
+description: "A Flutter Pusher client for Laravel Reverb, with support for custom WebSocket paths and dynamic authentication headers. Aims to be a reliable and feature-rich alternative."
 version: 0.0.1
-homepage:
+# homepage: # TODO: Add homepage URL
 
 environment:
   sdk: ^3.9.2
@@ -10,11 +10,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  web_socket_channel: ^2.4.0
+  meta: ^1.12.0
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.10
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
