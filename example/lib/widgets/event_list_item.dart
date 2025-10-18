@@ -66,16 +66,16 @@ class EventListItem extends StatelessWidget {
       child: ExpansionTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: eventColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: eventColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
           child: Icon(eventIcon, color: eventColor, size: 20),
         ),
         title: Text(event.eventName, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text('Channel: ${event.channelName}', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+        subtitle: Text('Channel: ${event.channelName}', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
         children: [
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -86,7 +86,7 @@ class EventListItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+                    border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
                   ),
                   child: SelectableText(_formatData(event.data), style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace')),
                 ),

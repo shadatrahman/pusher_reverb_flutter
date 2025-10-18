@@ -92,7 +92,7 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
 
       // Listen for decryption errors specifically
       _channel!.bind('pusher:decryption_error', (event, data) {
-        print('Decryption error: $data');
+        debugPrint('Decryption error: $data');
       });
 
       setState(() {
@@ -164,7 +164,7 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.purple.withOpacity(0.1),
+            color: Colors.purple.withValues(alpha: 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -181,7 +181,7 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Encrypted Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('End-to-end encrypted with AES-256', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                          Text('End-to-end encrypted with AES-256', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                         ],
                       ),
                     ),
@@ -199,7 +199,7 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Card(
-                      color: Colors.amber.withOpacity(0.1),
+                      color: Colors.amber.withValues(alpha: 0.1),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -231,7 +231,7 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Card(
-                      color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+                      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -348,7 +348,7 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Card(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(
@@ -400,13 +400,13 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+                                Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
                                 const SizedBox(height: 16),
-                                Text('Waiting for encrypted events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+                                Text('Waiting for encrypted events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Encrypted events will be automatically decrypted',
-                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.4)),
+                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
                                   textAlign: TextAlign.center,
                                 ),
                               ],
@@ -422,13 +422,13 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.enhanced_encryption, size: 64, color: theme.colorScheme.primary.withOpacity(0.5)),
+                          Icon(Icons.enhanced_encryption, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                           const SizedBox(height: 16),
                           Text('Subscribe to receive encrypted events', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
                           const SizedBox(height: 8),
                           Text(
                             'Events are automatically decrypted using your key',
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                             textAlign: TextAlign.center,
                           ),
                         ],

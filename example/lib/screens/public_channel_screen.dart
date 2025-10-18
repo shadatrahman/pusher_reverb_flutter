@@ -138,7 +138,7 @@ class _PublicChannelScreenState extends State<PublicChannelScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -155,7 +155,7 @@ class _PublicChannelScreenState extends State<PublicChannelScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Public Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('Open channels accessible to anyone', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                          Text('Open channels accessible to anyone', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                         ],
                       ),
                     ),
@@ -299,11 +299,11 @@ class _PublicChannelScreenState extends State<PublicChannelScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
                               const SizedBox(height: 16),
-                              Text('Waiting for events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+                              Text('Waiting for events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
                               const SizedBox(height: 8),
-                              Text('Events will appear here when received', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.4))),
+                              Text('Events will appear here when received', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
                             ],
                           ),
                         )
@@ -318,7 +318,7 @@ class _PublicChannelScreenState extends State<PublicChannelScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.info_outline, size: 64, color: theme.colorScheme.primary.withOpacity(0.5)),
+                        Icon(Icons.info_outline, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                         const SizedBox(height: 16),
                         Text('Subscribe to start receiving events', style: theme.textTheme.titleMedium),
                       ],

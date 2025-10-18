@@ -135,7 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Text('Server Configuration', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
-                          Text('Configure your Laravel Reverb server connection', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                          Text('Configure your Laravel Reverb server connection', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                         ],
                       ),
                     ),
@@ -279,7 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Info Card
             Card(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(

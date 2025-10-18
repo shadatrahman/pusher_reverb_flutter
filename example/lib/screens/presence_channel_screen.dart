@@ -82,11 +82,11 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
 
       // Also listen for specific presence events with callbacks
       _channel!.bind('pusher:member_added', (event, data) {
-        print('Member added: $data');
+        debugPrint('Member added: $data');
       });
 
       _channel!.bind('pusher:member_removed', (event, data) {
-        print('Member removed: $data');
+        debugPrint('Member removed: $data');
       });
 
       setState(() {
@@ -158,7 +158,7 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.green.withValues(alpha: 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -175,7 +175,7 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Presence Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('Track who is subscribed to the channel', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                          Text('Track who is subscribed to the channel', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                         ],
                       ),
                     ),
@@ -189,7 +189,7 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Card(
-              color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+              color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -352,11 +352,11 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
                               const SizedBox(height: 16),
-                              Text('Waiting for presence events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+                              Text('Waiting for presence events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
                               const SizedBox(height: 8),
-                              Text('Events will appear when members join/leave', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.4))),
+                              Text('Events will appear when members join/leave', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
                             ],
                           ),
                         )
@@ -371,11 +371,11 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline, size: 64, color: theme.colorScheme.primary.withOpacity(0.5)),
+                        Icon(Icons.people_outline, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                         const SizedBox(height: 16),
                         Text('Subscribe to see online members', style: theme.textTheme.titleMedium),
                         const SizedBox(height: 8),
-                        Text('Ensure authentication is configured', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                        Text('Ensure authentication is configured', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                       ],
                     ),
                   ),

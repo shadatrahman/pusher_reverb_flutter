@@ -114,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Connect to Laravel Reverb server and explore '
                         'various channel types',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -256,10 +256,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('•', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+          Text('•', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.8))),
+            child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.8))),
           ),
         ],
       ),

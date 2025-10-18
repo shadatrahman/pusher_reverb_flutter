@@ -135,7 +135,7 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.orange.withOpacity(0.1),
+            color: Colors.orange.withValues(alpha: 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -152,7 +152,7 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Private Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('Secure channels requiring authentication', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                          Text('Secure channels requiring authentication', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                         ],
                       ),
                     ),
@@ -166,7 +166,7 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Card(
-              color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+              color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -280,11 +280,11 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
                               const SizedBox(height: 16),
-                              Text('Waiting for private events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+                              Text('Waiting for private events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
                               const SizedBox(height: 8),
-                              Text('Private events will appear here when received', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.4))),
+                              Text('Private events will appear here when received', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
                             ],
                           ),
                         )
@@ -299,11 +299,11 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.lock_outline, size: 64, color: theme.colorScheme.primary.withOpacity(0.5)),
+                        Icon(Icons.lock_outline, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                         const SizedBox(height: 16),
                         Text('Subscribe to start receiving events', style: theme.textTheme.titleMedium),
                         const SizedBox(height: 8),
-                        Text('Ensure authentication is configured', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                        Text('Ensure authentication is configured', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                       ],
                     ),
                   ),

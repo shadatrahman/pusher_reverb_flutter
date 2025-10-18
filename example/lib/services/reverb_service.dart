@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -97,19 +98,19 @@ class ReverbService {
       authorizer: _authorizer,
       authEndpoint: _authEndpoint,
       onConnecting: () {
-        print('[ReverbService] Connecting to server...');
+        debugPrint('[ReverbService] Connecting to server...');
       },
       onConnected: (socketId) {
-        print('[ReverbService] Connected! Socket ID: $socketId');
+        debugPrint('[ReverbService] Connected! Socket ID: $socketId');
       },
       onReconnecting: () {
-        print('[ReverbService] Connection lost. Reconnecting...');
+        debugPrint('[ReverbService] Connection lost. Reconnecting...');
       },
       onDisconnected: () {
-        print('[ReverbService] Disconnected from server');
+        debugPrint('[ReverbService] Disconnected from server');
       },
       onError: (error) {
-        print('[ReverbService] Connection error: $error');
+        debugPrint('[ReverbService] Connection error: $error');
       },
     );
   }
@@ -123,7 +124,7 @@ class ReverbService {
     try {
       await _client!.connect();
     } catch (e) {
-      print('[ReverbService] Connection failed: $e');
+      debugPrint('[ReverbService] Connection failed: $e');
       rethrow;
     }
   }
