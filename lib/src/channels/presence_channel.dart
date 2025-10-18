@@ -58,8 +58,18 @@ class PresenceChannel extends PrivateChannel {
       // Get authentication headers from the authorizer
       final authHeaders = await authorizer(name, socketId);
 
+      // Check if channel is still subscribing (not unsubscribed during auth)
+      if (state != ChannelState.subscribing) {
+        return;
+      }
+
       // Send authentication request to the server with channel data
       final authResponse = await _authenticateWithServerAndChannelData(authHeaders);
+
+      // Check again if channel is still subscribing before sending message
+      if (state != ChannelState.subscribing) {
+        return;
+      }
 
       // Send subscription message with auth key and channel data
       final message = {
@@ -69,8 +79,12 @@ class PresenceChannel extends PrivateChannel {
 
       sendMessage(_encodeMessage(message));
     } catch (e) {
-      setState(ChannelState.unsubscribed);
-      rethrow;
+      // Only update state if still subscribing (not already unsubscribed)
+      if (state == ChannelState.subscribing) {
+        setState(ChannelState.unsubscribed);
+        rethrow;
+      }
+      // If already unsubscribed, silently ignore the error
     }
   }
 

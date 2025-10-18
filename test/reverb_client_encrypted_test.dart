@@ -20,6 +20,12 @@ void main() {
       client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer, authEndpoint: 'https://example.com/auth');
     });
 
+    tearDown(() async {
+      // Disconnect and wait a bit for any pending async operations to complete
+      client.disconnect();
+      await Future.delayed(Duration(milliseconds: 100));
+    });
+
     group('encryptedChannel', () {
       test('should throw error if authorizer is not configured', () {
         // Arrange

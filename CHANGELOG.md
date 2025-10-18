@@ -1,3 +1,13 @@
+## 0.0.2
+
+### Bug Fixes
+
+- **Fixed async subscription cleanup issue**: Resolved "failed after test completion" error in presence, private, and encrypted channel tests
+  - Added proper state checks during async authentication to prevent errors when channels are unsubscribed before authentication completes
+  - Improved error handling to silently ignore authentication failures for channels that have already been unsubscribed
+  - Added tearDown cleanup in tests to ensure pending async operations complete before test completion
+  - Affects `PrivateChannel` and `PresenceChannel` (including `EncryptedChannel`) subscription flows
+
 ## 0.0.1
 
 ### Initial Release
