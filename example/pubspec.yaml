@@ -1,0 +1,39 @@
+name: pusher_reverb_flutter_example
+description: A comprehensive example app demonstrating pusher_reverb_flutter package features.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # The pusher_reverb_flutter package
+  pusher_reverb_flutter:
+    path: ../
+  
+  # UI and state management
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.2.3
+  
+  # For secure storage of encryption keys
+  flutter_secure_storage: ^9.0.0
+  
+  # HTTP client for authentication
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Add assets for the example
+  assets:
+    - assets/
+

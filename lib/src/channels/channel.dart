@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import '../models/channel_event.dart';
+import '../models/exceptions.dart';
 
 /// Represents a channel state for subscription management.
 enum ChannelState {
@@ -56,19 +57,20 @@ class Channel {
   /// Validates the channel name according to Pusher conventions.
   void _validateChannelName() {
     if (name.isEmpty) {
-      throw ArgumentError('Channel name cannot be empty');
+      throw InvalidChannelNameException('Channel name cannot be empty', name);
     }
 
     if (name.length > 200) {
-      throw ArgumentError('Channel name cannot exceed 200 characters');
+      throw InvalidChannelNameException('Channel name cannot exceed 200 characters', name);
     }
 
     // Check for invalid characters
     final invalidChars = RegExp(r'[^a-zA-Z0-9_\-=@,.;]');
     if (invalidChars.hasMatch(name)) {
-      throw ArgumentError(
+      throw InvalidChannelNameException(
         'Channel name contains invalid characters. Only alphanumeric characters, '
-        'underscores, hyphens, equals signs, at signs, commas, periods, and semicolons are allowed.',
+        'underscores, hyphens, equals signs, at signs, commas, periods, and semicolons are allowed',
+        name,
       );
     }
   }

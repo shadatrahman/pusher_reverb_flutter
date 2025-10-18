@@ -42,7 +42,7 @@ void main() {
       test('should throw error for invalid private channel name', () {
         expect(
           () => PrivateChannel(name: 'public-channel', authorizer: mockAuthorizer, authEndpoint: testAuthEndpoint, socketId: testSocketId, sendMessage: (String message) {}),
-          throwsA(isA<ArgumentError>()),
+          throwsA(isA<InvalidChannelNameException>()),
         );
       });
 

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../auth/authorizer.dart';
+import '../models/exceptions.dart';
 import 'channel.dart';
 
 /// A private channel that requires authentication for subscription.
@@ -29,7 +30,10 @@ class PrivateChannel extends Channel {
   /// [socketId] The socket ID for authentication.
   /// [sendMessage] Callback for sending WebSocket messages.
   PrivateChannel({required super.name, required this.authorizer, required this.authEndpoint, required this.socketId, required super.sendMessage}) {
-    validatePrivateChannelName(name);
+    // Only validate if this is actually a PrivateChannel, not a subclass
+    if (runtimeType == PrivateChannel) {
+      validatePrivateChannelName(name);
+    }
   }
 
   /// Subscribes to the private channel with authentication.

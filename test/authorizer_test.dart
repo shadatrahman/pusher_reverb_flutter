@@ -13,29 +13,41 @@ void main() {
       });
 
       test('should reject empty channel names', () {
-        expect(() => validatePrivateChannelName(''), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', 'Channel name cannot be empty')));
+        expect(() => validatePrivateChannelName(''), throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', 'Channel name cannot be empty')));
       });
 
       test('should reject channel names without private- prefix', () {
         expect(
           () => validatePrivateChannelName('public-channel'),
-          throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Private channel name must start with "private-" prefix'))),
+          throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', contains('Private channel name must start with "private-" prefix'))),
         );
 
-        expect(() => validatePrivateChannelName('channel'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Private channel name must start with "private-" prefix'))));
+        expect(
+          () => validatePrivateChannelName('channel'),
+          throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', contains('Private channel name must start with "private-" prefix'))),
+        );
       });
 
       test('should reject channel names that are too long', () {
         final longName = 'private-${'a' * 200}';
-        expect(() => validatePrivateChannelName(longName), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', 'Channel name cannot exceed 200 characters')));
+        expect(() => validatePrivateChannelName(longName), throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', 'Channel name cannot exceed 200 characters')));
       });
 
       test('should reject channel names with invalid characters', () {
-        expect(() => validatePrivateChannelName('private-channel!'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Channel name contains invalid characters'))));
+        expect(
+          () => validatePrivateChannelName('private-channel!'),
+          throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', contains('Channel name contains invalid characters'))),
+        );
 
-        expect(() => validatePrivateChannelName('private-channel#'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Channel name contains invalid characters'))));
+        expect(
+          () => validatePrivateChannelName('private-channel#'),
+          throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', contains('Channel name contains invalid characters'))),
+        );
 
-        expect(() => validatePrivateChannelName('private-channel\$'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Channel name contains invalid characters'))));
+        expect(
+          () => validatePrivateChannelName('private-channel\$'),
+          throwsA(isA<InvalidChannelNameException>().having((e) => e.message, 'message', contains('Channel name contains invalid characters'))),
+        );
       });
     });
 

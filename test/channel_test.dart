@@ -18,16 +18,16 @@ void main() {
       });
 
       test('throws error for empty channel name', () {
-        expect(() => Channel(name: '', sendMessage: (message) {}), throwsA(isA<ArgumentError>()));
+        expect(() => Channel(name: '', sendMessage: (message) {}), throwsA(isA<InvalidChannelNameException>()));
       });
 
       test('throws error for channel name exceeding 200 characters', () {
         final longName = 'a' * 201;
-        expect(() => Channel(name: longName, sendMessage: (message) {}), throwsA(isA<ArgumentError>()));
+        expect(() => Channel(name: longName, sendMessage: (message) {}), throwsA(isA<InvalidChannelNameException>()));
       });
 
       test('throws error for channel name with invalid characters', () {
-        expect(() => Channel(name: 'test#channel', sendMessage: (message) {}), throwsA(isA<ArgumentError>()));
+        expect(() => Channel(name: 'test#channel', sendMessage: (message) {}), throwsA(isA<InvalidChannelNameException>()));
       });
 
       test('accepts valid channel names with special characters', () {

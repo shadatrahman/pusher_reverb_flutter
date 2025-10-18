@@ -9,6 +9,9 @@ enum ConnectionState {
   /// The client is disconnected from the server.
   disconnected,
 
+  /// The client is attempting to reconnect after losing connection.
+  reconnecting,
+
   /// An error occurred during connection or communication.
   error,
 }

@@ -73,7 +73,8 @@ void main() {
 
       // Assert
       await Future.delayed(Duration.zero);
-      expect(connectionError, error);
+      expect(connectionError, isA<ConnectionException>());
+      expect((connectionError as ConnectionException).cause, error);
       client.disconnect();
     });
 
@@ -310,24 +311,27 @@ void main() {
       });
 
       group('Null host infinite loop guard', () {
-        test('constructor throws ArgumentError for empty host', () {
+        test('constructor throws ConnectionException for empty host', () {
           // Act & Assert
-          expect(() => ReverbClient.forTesting(host: '', port: 8080, appKey: 'test-app'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', 'Host cannot be null or empty')));
+          expect(() => ReverbClient.forTesting(host: '', port: 8080, appKey: 'test-app'), throwsA(isA<ConnectionException>().having((e) => e.message, 'message', 'Host cannot be null or empty')));
         });
 
-        test('constructor throws ArgumentError for invalid port', () {
+        test('constructor throws ConnectionException for invalid port', () {
           // Act & Assert
-          expect(() => ReverbClient.forTesting(host: 'localhost', port: 0, appKey: 'test-app'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', 'Port must be between 1 and 65535')));
+          expect(
+            () => ReverbClient.forTesting(host: 'localhost', port: 0, appKey: 'test-app'),
+            throwsA(isA<ConnectionException>().having((e) => e.message, 'message', 'Port must be between 1 and 65535')),
+          );
 
           expect(
             () => ReverbClient.forTesting(host: 'localhost', port: 65536, appKey: 'test-app'),
-            throwsA(isA<ArgumentError>().having((e) => e.message, 'message', 'Port must be between 1 and 65535')),
+            throwsA(isA<ConnectionException>().having((e) => e.message, 'message', 'Port must be between 1 and 65535')),
           );
         });
 
-        test('constructor throws ArgumentError for empty appKey', () {
+        test('constructor throws ConnectionException for empty appKey', () {
           // Act & Assert
-          expect(() => ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: ''), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', 'App key cannot be null or empty')));
+          expect(() => ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: ''), throwsA(isA<ConnectionException>().having((e) => e.message, 'message', 'App key cannot be null or empty')));
         });
 
         test('connect method validates host parameter', () async {
@@ -541,6 +545,261 @@ void main() {
         // Assert - Both listeners should receive the same events
         expect(states1, states2);
         expect(states1, contains(ConnectionState.connecting));
+        client.disconnect();
+      });
+    });
+
+    group('Connection Callbacks', () {
+      late MockWebSocketChannel mockChannel;
+      late MockWebSocketSink mockSink;
+      late StreamController<dynamic> streamController;
+
+      setUp(() {
+        mockChannel = MockWebSocketChannel();
+        mockSink = MockWebSocketSink();
+        streamController = StreamController<dynamic>.broadcast();
+
+        when(mockChannel.stream).thenAnswer((_) => streamController.stream);
+        when(mockChannel.sink).thenReturn(mockSink);
+      });
+
+      tearDown(() {
+        streamController.close();
+      });
+
+      test('onConnecting callback fires when connect is called', () async {
+        // Arrange
+        bool connectingCallbackFired = false;
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', onConnecting: () => connectingCallbackFired = true, channelFactory: (_) => mockChannel);
+
+        // Act
+        await client.connect();
+
+        // Assert
+        expect(connectingCallbackFired, isTrue);
+        expect(client.connectionState, equals(ConnectionState.connecting));
+        client.disconnect();
+      });
+
+      test('onConnecting callback handles null gracefully', () async {
+        // Arrange
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', channelFactory: (_) => mockChannel);
+
+        // Act & Assert - Should not throw
+        await client.connect();
+        expect(client.connectionState, equals(ConnectionState.connecting));
+        client.disconnect();
+      });
+
+      test('onConnected callback fires on initial connection', () async {
+        // Arrange
+        String? connectedSocketId;
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', onConnected: (socketId) => connectedSocketId = socketId, channelFactory: (_) => mockChannel);
+
+        // Act
+        await client.connect();
+        const socketId = 'test-socket-id';
+        final message = jsonEncode({
+          'event': 'pusher:connection_established',
+          'data': jsonEncode({'socket_id': socketId, 'activity_timeout': 30}),
+        });
+        streamController.add(message);
+        await Future.delayed(Duration.zero);
+
+        // Assert
+        expect(connectedSocketId, equals(socketId));
+        expect(client.connectionState, equals(ConnectionState.connected));
+        client.disconnect();
+      });
+
+      test('onDisconnected callback fires when connection is lost', () async {
+        // Arrange
+        bool disconnectedCallbackFired = false;
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', onDisconnected: () => disconnectedCallbackFired = true, channelFactory: (_) => mockChannel);
+
+        // Act
+        await client.connect();
+        streamController.close(); // Simulate connection loss
+        await Future.delayed(Duration.zero);
+
+        // Assert
+        expect(disconnectedCallbackFired, isTrue);
+      });
+
+      test('onDisconnected callback fires on manual disconnect', () async {
+        // Arrange
+        bool disconnectedCallbackFired = false;
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', onDisconnected: () => disconnectedCallbackFired = true, channelFactory: (_) => mockChannel);
+
+        // Act
+        await client.connect();
+        client.disconnect();
+        await Future.delayed(Duration.zero);
+
+        // Assert
+        expect(disconnectedCallbackFired, isTrue);
+        expect(client.connectionState, equals(ConnectionState.disconnected));
+      });
+
+      test('onDisconnected callback handles null gracefully', () async {
+        // Arrange
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', channelFactory: (_) => mockChannel);
+
+        // Act & Assert - Should not throw
+        await client.connect();
+        client.disconnect();
+        expect(client.connectionState, equals(ConnectionState.disconnected));
+      });
+
+      test('all callbacks fire in correct order during connection lifecycle', () async {
+        // Arrange
+        final callbackOrder = <String>[];
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          onConnecting: () => callbackOrder.add('connecting'),
+          onConnected: (_) => callbackOrder.add('connected'),
+          onDisconnected: () => callbackOrder.add('disconnected'),
+          channelFactory: (_) => mockChannel,
+        );
+
+        // Act
+        await client.connect();
+        final message = jsonEncode({
+          'event': 'pusher:connection_established',
+          'data': jsonEncode({'socket_id': 'test-socket', 'activity_timeout': 30}),
+        });
+        streamController.add(message);
+        await Future.delayed(Duration.zero);
+        client.disconnect();
+        await Future.delayed(Duration.zero);
+
+        // Assert
+        expect(callbackOrder, equals(['connecting', 'connected', 'disconnected']));
+      });
+    });
+
+    group('Reconnection Logic', () {
+      late MockWebSocketChannel mockChannel;
+      late MockWebSocketSink mockSink;
+      late StreamController<dynamic> streamController;
+
+      setUp(() {
+        mockChannel = MockWebSocketChannel();
+        mockSink = MockWebSocketSink();
+        streamController = StreamController<dynamic>.broadcast();
+
+        when(mockChannel.stream).thenAnswer((_) => streamController.stream);
+        when(mockChannel.sink).thenReturn(mockSink);
+      });
+
+      tearDown(() {
+        streamController.close();
+      });
+
+      test('onReconnecting callback fires when reconnection is triggered', () async {
+        // Arrange
+        bool reconnectingCallbackFired = false;
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', onReconnecting: () => reconnectingCallbackFired = true, channelFactory: (_) => mockChannel);
+
+        // Act
+        await client.connect();
+        streamController.close(); // Trigger connection loss
+        await Future.delayed(Duration(seconds: 1)); // Wait for reconnect to start
+
+        // Assert
+        expect(reconnectingCallbackFired, isTrue);
+      });
+
+      test('onReconnecting callback handles null gracefully', () async {
+        // Arrange
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', channelFactory: (_) => mockChannel);
+
+        // Act & Assert - Should not throw
+        await client.connect();
+        streamController.close(); // Trigger connection loss
+        await Future.delayed(Duration(seconds: 1));
+      });
+
+      test('manual disconnect prevents automatic reconnection', () async {
+        // Arrange
+        bool reconnectingCallbackFired = false;
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', onReconnecting: () => reconnectingCallbackFired = true, channelFactory: (_) => mockChannel);
+
+        // Act
+        await client.connect();
+        client.disconnect(); // Manual disconnect
+        await Future.delayed(Duration(seconds: 3)); // Wait longer than reconnect delay
+
+        // Assert
+        expect(reconnectingCallbackFired, isFalse);
+      });
+
+      test('connection state transitions to reconnecting before reconnect attempt', () async {
+        // Arrange
+        final states = <ConnectionState>[];
+        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', channelFactory: (_) => mockChannel);
+        client.onConnectionStateChange.listen(states.add);
+
+        // Act
+        await client.connect();
+        streamController.close(); // Trigger connection loss
+        await Future.delayed(Duration(seconds: 1)); // Wait for reconnect to start
+
+        // Assert
+        expect(states, containsAll([ConnectionState.connecting, ConnectionState.disconnected, ConnectionState.reconnecting]));
+      });
+
+      test('onConnected callback fires after successful reconnection', () async {
+        // Arrange
+        int connectedCallbackCount = 0;
+        final streamController1 = StreamController<dynamic>.broadcast();
+        final streamController2 = StreamController<dynamic>.broadcast();
+        int channelFactoryCallCount = 0;
+
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          onConnected: (_) => connectedCallbackCount++,
+          channelFactory: (_) {
+            channelFactoryCallCount++;
+            final channel = MockWebSocketChannel();
+            final sink = MockWebSocketSink();
+            when(channel.stream).thenAnswer((_) => channelFactoryCallCount == 1 ? streamController1.stream : streamController2.stream);
+            when(channel.sink).thenReturn(sink);
+            return channel;
+          },
+        );
+
+        // Act - Initial connection
+        await client.connect();
+        final message1 = jsonEncode({
+          'event': 'pusher:connection_established',
+          'data': jsonEncode({'socket_id': 'socket-1', 'activity_timeout': 30}),
+        });
+        streamController1.add(message1);
+        await Future.delayed(Duration.zero);
+
+        // Trigger reconnection
+        streamController1.close();
+        await Future.delayed(Duration(seconds: 3)); // Wait for reconnect
+
+        // Simulate successful reconnection
+        final message2 = jsonEncode({
+          'event': 'pusher:connection_established',
+          'data': jsonEncode({'socket_id': 'socket-2', 'activity_timeout': 30}),
+        });
+        streamController2.add(message2);
+        await Future.delayed(Duration.zero);
+
+        // Assert
+        expect(connectedCallbackCount, equals(2)); // Initial + reconnection
+
+        // Cleanup
+        streamController1.close();
+        streamController2.close();
         client.disconnect();
       });
     });

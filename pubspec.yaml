@@ -13,6 +13,8 @@ dependencies:
   web_socket_channel: ^2.4.0
   meta: ^1.12.0
   http: ^1.1.0
+  # Encryption library for encrypted channel support (AES-256-CBC)
+  encrypt: ^5.0.3
 
 dev_dependencies:
   flutter_test:

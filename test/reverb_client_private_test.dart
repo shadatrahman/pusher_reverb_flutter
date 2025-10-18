@@ -20,7 +20,7 @@ void main() {
 
         expect(
           () => clientWithoutAuthorizer.subscribeToPrivateChannel('private-test-channel'),
-          throwsA(isA<StateError>().having((e) => e.message, 'message', contains('Authorizer function is required'))),
+          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
         );
       });
 
@@ -29,19 +29,19 @@ void main() {
 
         expect(
           () => clientWithoutEndpoint.subscribeToPrivateChannel('private-test-channel'),
-          throwsA(isA<StateError>().having((e) => e.message, 'message', contains('Authentication endpoint is required'))),
+          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
         );
       });
 
       test('should throw error if socketId is not available', () {
-        expect(() => client.subscribeToPrivateChannel('private-test-channel'), throwsA(isA<StateError>().having((e) => e.message, 'message', contains('Socket ID is not available'))));
+        expect(() => client.subscribeToPrivateChannel('private-test-channel'), throwsA(isA<ConnectionException>().having((e) => e.message, 'message', contains('not connected to server'))));
       });
 
       test('should throw error for invalid private channel name', () {
         // Set socket ID to bypass the socket ID check
         client.socketId = 'test-socket-id';
 
-        expect(() => client.subscribeToPrivateChannel('public-channel'), throwsA(isA<ArgumentError>()));
+        expect(() => client.subscribeToPrivateChannel('public-channel'), throwsA(isA<InvalidChannelNameException>()));
       });
     });
 
@@ -117,7 +117,10 @@ void main() {
         client.subscribeToChannel('private-test-channel');
 
         // Then try to subscribe to private channel with same name
-        expect(() => client.subscribeToPrivateChannel('private-test-channel'), throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('already exists as a public channel'))));
+        expect(
+          () => client.subscribeToPrivateChannel('private-test-channel'),
+          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('already exists as a different channel type'))),
+        );
       });
     });
   });
