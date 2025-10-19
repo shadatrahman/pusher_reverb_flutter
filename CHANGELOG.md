@@ -1,3 +1,73 @@
+## 0.0.3
+
+### New Features
+
+- **API Key Authentication Support**: Added optional API key parameter for enhanced authentication
+
+  - New `apiKey` parameter in `ReverbClient.instance()` for API key-based authentication
+  - API key is automatically included in WebSocket connection headers as `Authorization: Bearer {apiKey}`
+  - API key is also included in private channel authentication headers
+  - Maintains full backward compatibility - existing code continues to work without changes
+  - Example: `ReverbClient.instance(host: 'localhost', port: 8080, appKey: 'app-key', apiKey: 'your-api-key')`
+
+- **Cluster Configuration Support**: Added predefined cluster configurations for easier deployment
+
+  - New `cluster` parameter in `ReverbClient.instance()` for predefined cluster settings
+  - Available clusters: `us-east-1`, `us-west-2`, `eu-west-1`, `ap-southeast-1`, `local`, `staging`
+  - Cluster settings automatically configure host, port, and TLS settings
+  - Can be combined with explicit parameters for mixed configuration
+  - Example: `ReverbClient.instance(cluster: 'us-east-1', appKey: 'app-key', apiKey: 'your-api-key')`
+
+- **Enhanced Configuration Management**: Added helper methods for configuration access and debugging
+
+  - `availableClusters` - Get list of available cluster names
+  - `getClusterConfig(String cluster)` - Get configuration for specific cluster
+  - `resolvedConfig` - Access to final resolved configuration
+  - `isUsingCluster` - Check if client is using cluster configuration
+  - `effectiveHost`, `effectivePort`, `effectiveUseTLS` - Get final configuration values
+
+- **Updated Example App**: Enhanced example application with new features
+  - Added API key and cluster configuration fields in settings screen
+  - Secure API key input with show/hide password toggle
+  - Cluster selection with helpful hints about available options
+  - Enhanced connection status display showing cluster information
+  - Updated setup guide with new feature information
+
+### Technical Improvements
+
+- **Configuration Resolution**: Implemented robust configuration resolution system
+
+  - Cluster settings override explicit parameters when specified
+  - Proper parameter validation for API keys and cluster names
+  - Comprehensive error handling for invalid configurations
+  - Performance optimized with configuration cached during initialization
+
+- **WebSocket Integration**: Enhanced WebSocket connection with header support
+
+  - Uses `IOWebSocketChannel.connect()` with headers for API key authentication
+  - Proper header merging for cluster-specific and custom headers
+  - Maintains compatibility with existing WebSocket channel factory pattern
+
+- **Testing**: Added comprehensive test coverage for new features
+  - 17 new unit tests covering API key and cluster functionality
+  - Tests for parameter priority, backward compatibility, and edge cases
+  - All existing tests continue to pass (259 total tests)
+  - Test coverage maintained at over 90%
+
+### Documentation Updates
+
+- **README.md**: Updated with comprehensive API key and cluster documentation
+
+  - New section dedicated to API key and cluster support
+  - Usage examples for all new features
+  - Updated parameter table with new options
+  - Backward compatibility information
+
+- **API Documentation**: Enhanced inline documentation
+  - Detailed parameter descriptions for new options
+  - Usage examples in code comments
+  - Clear migration guidance for existing users
+
 ## 0.0.2
 
 ### Bug Fixes

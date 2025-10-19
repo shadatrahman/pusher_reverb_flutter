@@ -8,3 +8,4 @@ export 'src/models/connection_state.dart';
 export 'src/models/channel_event.dart';
 export 'src/models/presence_member.dart';
 export 'src/models/exceptions.dart';
+export 'src/models/cluster_config.dart';

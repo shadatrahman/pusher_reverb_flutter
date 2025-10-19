@@ -20,6 +20,10 @@ class ReverbService {
   String _authToken = '';
   bool _useTLS = false;
 
+  // NEW: API key and cluster support
+  String _apiKey = '';
+  String _cluster = '';
+
   // Private constructor for singleton
   ReverbService._();
 
@@ -45,6 +49,10 @@ class ReverbService {
     _wsPath = prefs.getString('reverb_ws_path') ?? '/';
     _authToken = prefs.getString('reverb_auth_token') ?? '';
     _useTLS = prefs.getBool('reverb_use_tls') ?? false;
+
+    // NEW: Load API key and cluster
+    _apiKey = prefs.getString('reverb_api_key') ?? '';
+    _cluster = prefs.getString('reverb_cluster') ?? '';
   }
 
   /// Save configuration to shared preferences
@@ -56,6 +64,8 @@ class ReverbService {
     required String wsPath,
     required String authToken,
     required bool useTLS,
+    String? apiKey, // NEW
+    String? cluster, // NEW
   }) async {
     _host = host;
     _port = port;
@@ -65,6 +75,10 @@ class ReverbService {
     _authToken = authToken;
     _useTLS = useTLS;
 
+    // NEW: Save API key and cluster
+    _apiKey = apiKey ?? '';
+    _cluster = cluster ?? '';
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('reverb_host', host);
     await prefs.setInt('reverb_port', port);
@@ -73,10 +87,24 @@ class ReverbService {
     await prefs.setString('reverb_ws_path', wsPath);
     await prefs.setString('reverb_auth_token', authToken);
     await prefs.setBool('reverb_use_tls', useTLS);
+
+    // NEW: Save API key and cluster
+    await prefs.setString('reverb_api_key', _apiKey);
+    await prefs.setString('reverb_cluster', _cluster);
   }
 
   /// Get current configuration
-  Map<String, dynamic> get configuration => {'host': _host, 'port': _port, 'appKey': _appKey, 'authEndpoint': _authEndpoint, 'wsPath': _wsPath, 'authToken': _authToken, 'useTLS': _useTLS};
+  Map<String, dynamic> get configuration => {
+    'host': _host,
+    'port': _port,
+    'appKey': _appKey,
+    'authEndpoint': _authEndpoint,
+    'wsPath': _wsPath,
+    'authToken': _authToken,
+    'useTLS': _useTLS,
+    'apiKey': _apiKey, // NEW
+    'cluster': _cluster, // NEW
+  };
 
   /// Sample authorizer function for private channels
   Future<Map<String, String>> _authorizer(String channelName, String socketId) async {
@@ -93,6 +121,8 @@ class ReverbService {
       host: _host,
       port: _port,
       appKey: _appKey,
+      apiKey: _apiKey.isNotEmpty ? _apiKey : null, // NEW
+      cluster: _cluster.isNotEmpty ? _cluster : null, // NEW
       wsPath: _wsPath,
       useTLS: _useTLS,
       authorizer: _authorizer,

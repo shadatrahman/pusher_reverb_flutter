@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:meta/meta.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
 import '../channels/channel.dart';
 import '../channels/private_channel.dart';
 import '../channels/presence_channel.dart';
@@ -11,6 +12,7 @@ import '../channels/encrypted_channel.dart';
 import '../auth/authorizer.dart';
 import '../models/connection_state.dart';
 import '../models/exceptions.dart';
+import '../models/cluster_config.dart';
 
 /// A client for interacting with a Laravel Reverb WebSocket server.
 ///
@@ -29,6 +31,12 @@ class ReverbClient {
 
   /// The application key for the Reverb server.
   final String appKey;
+
+  /// The API key for authentication (optional).
+  final String? apiKey;
+
+  /// The cluster identifier for predefined configurations (optional).
+  final String? cluster;
 
   /// The authorizer function for private channel authentication.
   final Authorizer? authorizer;
@@ -91,6 +99,20 @@ class ReverbClient {
   @visibleForTesting
   final WebSocketChannel Function(Uri uri)? channelFactory;
 
+  /// Resolved configuration after cluster processing.
+  late final ResolvedConfig _resolvedConfig;
+
+  /// Predefined cluster configurations.
+  static const Map<String, ClusterConfig> _clusters = {
+    'us-east-1': ClusterConfig(host: 'reverb-us-east-1.pusher.com', port: 443, useTLS: true, region: 'us-east-1'),
+    'us-west-2': ClusterConfig(host: 'reverb-us-west-2.pusher.com', port: 443, useTLS: true, region: 'us-west-2'),
+    'eu-west-1': ClusterConfig(host: 'reverb-eu-west-1.pusher.com', port: 443, useTLS: true, region: 'eu-west-1'),
+    'ap-southeast-1': ClusterConfig(host: 'reverb-ap-southeast-1.pusher.com', port: 443, useTLS: true, region: 'ap-southeast-1'),
+    // Development clusters
+    'local': ClusterConfig(host: 'localhost', port: 8080, useTLS: false, region: 'local'),
+    'staging': ClusterConfig(host: 'staging-reverb.pusher.com', port: 443, useTLS: true, region: 'staging'),
+  };
+
   /// A stream that emits connection state changes.
   ///
   /// Listen to this stream to be notified when the connection state changes.
@@ -114,6 +136,8 @@ class ReverbClient {
     required this.host,
     required this.port,
     required this.appKey,
+    this.apiKey,
+    this.cluster,
     this.authorizer,
     this.authEndpoint,
     this.wsPath,
@@ -135,6 +159,19 @@ class ReverbClient {
     if (appKey.isEmpty) {
       throw ConnectionException('App key cannot be null or empty');
     }
+
+    // Validate API key if provided
+    if (apiKey != null && apiKey!.isEmpty) {
+      throw ConnectionException('API key cannot be empty');
+    }
+
+    // Validate cluster if provided
+    if (cluster != null && !_clusters.containsKey(cluster)) {
+      throw ConnectionException('Invalid cluster: $cluster. Available clusters: ${_clusters.keys.join(', ')}');
+    }
+
+    // Resolve configuration
+    _resolvedConfig = _resolveConfiguration();
   }
 
   /// Gets or initializes the singleton instance of ReverbClient.
@@ -149,6 +186,8 @@ class ReverbClient {
   ///   host: 'localhost',
   ///   port: 8080,
   ///   appKey: 'my-app-key',
+  ///   apiKey: 'my-api-key',
+  ///   cluster: 'us-east-1',
   /// );
   ///
   /// // Later access (parameters optional)
@@ -158,6 +197,8 @@ class ReverbClient {
   /// [host] The host of the Reverb server.
   /// [port] The port of the Reverb server.
   /// [appKey] The application key for the Reverb server.
+  /// [apiKey] Optional API key for authentication.
+  /// [cluster] Optional cluster identifier for predefined configurations.
   /// [authorizer] Optional authorizer function for private channel authentication.
   /// [authEndpoint] Optional authentication endpoint URL for private channel authentication.
   /// [wsPath] Optional custom WebSocket path. If not provided, defaults to '/app/{appKey}'.
@@ -174,6 +215,8 @@ class ReverbClient {
     String? host,
     int? port,
     String? appKey,
+    String? apiKey,
+    String? cluster,
     Authorizer? authorizer,
     String? authEndpoint,
     String? wsPath,
@@ -196,6 +239,8 @@ class ReverbClient {
         host: host,
         port: port,
         appKey: appKey,
+        apiKey: apiKey,
+        cluster: cluster,
         authorizer: authorizer,
         authEndpoint: authEndpoint,
         wsPath: wsPath,
@@ -250,6 +295,8 @@ class ReverbClient {
     required String host,
     required int port,
     required String appKey,
+    String? apiKey,
+    String? cluster,
     Authorizer? authorizer,
     String? authEndpoint,
     String? wsPath,
@@ -265,6 +312,8 @@ class ReverbClient {
       host: host,
       port: port,
       appKey: appKey,
+      apiKey: apiKey,
+      cluster: cluster,
       authorizer: authorizer,
       authEndpoint: authEndpoint,
       wsPath: wsPath,
@@ -287,6 +336,73 @@ class ReverbClient {
     _instance?.disconnect();
     _instance?._connectionStateController.close();
     _instance = null;
+  }
+
+  /// Resolves the final configuration by applying cluster settings if needed.
+  ResolvedConfig _resolveConfiguration() {
+    String finalHost = host;
+    int finalPort = port;
+    bool finalUseTLS = useTLS;
+    Map<String, String> additionalHeaders = {};
+
+    // Apply cluster configuration if cluster is specified
+    if (cluster != null) {
+      final clusterConfig = _clusters[cluster]!;
+      finalHost = clusterConfig.host;
+      finalPort = clusterConfig.port;
+      finalUseTLS = clusterConfig.useTLS;
+
+      // Add cluster-specific headers
+      if (clusterConfig.additionalHeaders != null) {
+        additionalHeaders.addAll(clusterConfig.additionalHeaders!);
+      }
+    }
+
+    return ResolvedConfig(host: finalHost, port: finalPort, useTLS: finalUseTLS, additionalHeaders: additionalHeaders);
+  }
+
+  /// Gets the list of available clusters.
+  static List<String> get availableClusters => _clusters.keys.toList();
+
+  /// Gets cluster configuration for a specific cluster.
+  static ClusterConfig? getClusterConfig(String cluster) => _clusters[cluster];
+
+  /// Gets the resolved configuration (useful for debugging).
+  ResolvedConfig get resolvedConfig => _resolvedConfig;
+
+  /// Checks if the client is using a cluster configuration.
+  bool get isUsingCluster => cluster != null;
+
+  /// Gets the effective host (after cluster resolution).
+  String get effectiveHost => _resolvedConfig.host;
+
+  /// Gets the effective port (after cluster resolution).
+  int get effectivePort => _resolvedConfig.port;
+
+  /// Gets the effective TLS setting (after cluster resolution).
+  bool get effectiveUseTLS => _resolvedConfig.useTLS;
+
+  /// Enhanced authorizer that includes API key if available.
+  Authorizer _createAuthorizer() {
+    return (String channelName, String socketId) async {
+      final headers = <String, String>{'Content-Type': 'application/json'};
+
+      // Add API key if available
+      if (apiKey != null) {
+        headers['Authorization'] = 'Bearer $apiKey';
+      }
+
+      // Add cluster-specific headers
+      headers.addAll(_resolvedConfig.additionalHeaders);
+
+      // Call custom authorizer if provided
+      if (authorizer != null) {
+        final customHeaders = await authorizer!(channelName, socketId);
+        headers.addAll(customHeaders);
+      }
+
+      return headers;
+    };
   }
 
   /// Updates the connection state and notifies listeners.
@@ -333,7 +449,7 @@ class ReverbClient {
   Future<void> connect() async {
     try {
       // Guard against null or empty host to prevent infinite connection loops
-      if (host.isEmpty) {
+      if (_resolvedConfig.host.isEmpty) {
         throw ConnectionException('Host cannot be null or empty');
       }
 
@@ -344,7 +460,15 @@ class ReverbClient {
       onConnecting?.call();
 
       final uri = _constructWebSocketUri();
-      _channel = channelFactory != null ? channelFactory!(uri) : WebSocketChannel.connect(uri);
+
+      // Create WebSocket with API key headers if provided
+      if (apiKey != null) {
+        final headers = <String, dynamic>{'Authorization': 'Bearer $apiKey', ..._resolvedConfig.additionalHeaders};
+        _channel = channelFactory != null ? channelFactory!(uri) : IOWebSocketChannel.connect(uri, headers: headers);
+      } else {
+        _channel = channelFactory != null ? channelFactory!(uri) : IOWebSocketChannel.connect(uri);
+      }
+
       _subscription = _channel?.stream.listen(
         _handleMessage,
         onError: (error) {
@@ -371,16 +495,19 @@ class ReverbClient {
 
   /// Constructs the WebSocket URI for the connection.
   ///
-  /// Uses the custom [wsPath] if provided, otherwise defaults to '/app/{appKey}'.
-  /// Uses wss:// protocol if [useTLS] is true, otherwise uses ws://.
+  /// Uses the resolved configuration (cluster settings applied if specified).
+  /// Uses wss:// protocol if useTLS is true, otherwise uses ws://.
   Uri _constructWebSocketUri() {
     final path = wsPath ?? '/app/$appKey';
-    final scheme = useTLS ? 'wss' : 'ws';
+    final scheme = _resolvedConfig.useTLS ? 'wss' : 'ws';
+    final host = _resolvedConfig.host;
+    final port = _resolvedConfig.port;
 
     // Handle empty path case
     if (path.isEmpty) {
       return Uri.parse('$scheme://$host:$port');
     }
+
     // Ensure path starts with '/' for proper URI construction
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     return Uri.parse('$scheme://$host:$port$normalizedPath');
@@ -449,7 +576,8 @@ class ReverbClient {
       throw ConnectionException('Cannot subscribe to channel: not connected to server');
     }
 
-    final channel = PrivateChannel(name: channelName, authorizer: authorizer!, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage);
+    final enhancedAuthorizer = _createAuthorizer();
+    final channel = PrivateChannel(name: channelName, authorizer: enhancedAuthorizer, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage);
 
     _channels[channelName] = channel;
     channel.subscribe();
@@ -489,7 +617,8 @@ class ReverbClient {
       throw ConnectionException('Cannot subscribe to channel: not connected to server');
     }
 
-    final channel = PresenceChannel(name: channelName, authorizer: authorizer!, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage, channelData: channelData);
+    final enhancedAuthorizer = _createAuthorizer();
+    final channel = PresenceChannel(name: channelName, authorizer: enhancedAuthorizer, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage, channelData: channelData);
 
     _channels[channelName] = channel;
     channel.subscribe();
@@ -548,7 +677,15 @@ class ReverbClient {
       throw ConnectionException('Cannot subscribe to channel: not connected to server');
     }
 
-    final channel = EncryptedChannel(name: channelName, authorizer: authorizer!, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage, encryptionMasterKey: encryptionMasterKey);
+    final enhancedAuthorizer = _createAuthorizer();
+    final channel = EncryptedChannel(
+      name: channelName,
+      authorizer: enhancedAuthorizer,
+      authEndpoint: authEndpoint!,
+      socketId: socketId!,
+      sendMessage: _sendMessage,
+      encryptionMasterKey: encryptionMasterKey,
+    );
 
     _channels[channelName] = channel;
 

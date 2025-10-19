@@ -21,7 +21,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pusher_reverb_flutter: ^0.0.1
+  pusher_reverb_flutter: ^0.0.3
 ```
 
 Then run:
@@ -29,6 +29,68 @@ Then run:
 ```bash
 flutter pub get
 ```
+
+## 🚀 Quick Start
+
+Get up and running in 3 simple steps:
+
+### 1. Basic Connection
+
+```dart
+import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
+
+// Initialize and connect
+final client = ReverbClient.instance(
+  host: 'localhost',
+  port: 8080,
+  appKey: 'your-app-key',
+);
+
+await client.connect();
+```
+
+### 2. Subscribe to a Channel
+
+```dart
+// Subscribe to a public channel
+final channel = client.subscribeToChannel('notifications');
+
+// Listen for events
+channel.on('new-message').listen((event) {
+  print('Received: ${event.data}');
+});
+```
+
+### 3. Laravel Setup
+
+```bash
+# Install broadcasting
+php artisan install:broadcasting
+
+# Start Reverb server
+php artisan reverb:start
+```
+
+**That's it!** You're now connected to Laravel Reverb. Continue reading for advanced features like private channels, encryption, and API key authentication.
+
+## 📖 Table of Contents
+
+- [🚀 Quick Start](#-quick-start)
+- [Getting Started](#getting-started)
+- [Usage Examples](#usage)
+  - [Basic Connection](#example-1-basic-connection-to-reverb-server-using-singleton)
+  - [API Key & Cluster Support](#example-11-using-api-key-and-cluster-support)
+  - [Public Channels](#example-2-subscribe-to-a-public-channel-with-callback-based-api)
+  - [Private Channels](#example-4-subscribe-to-a-private-channel-with-authentication)
+  - [Encrypted Channels](#example-5-subscribe-to-an-encrypted-channel)
+  - [Flutter Widget Integration](#example-6-using-streambuilder-in-flutter-widgets)
+  - [Connection Lifecycle](#example-7-connection-lifecycle-and-enhanced-callbacks)
+- [API Key and Cluster Support](#api-key-and-cluster-support)
+- [Configuration](#configuration)
+- [Error Handling](#error-handling-and-exceptions)
+- [API Reference](#api-reference)
+- [Testing](#testing)
+- [Contributing](#contributing)
 
 ## Getting Started
 
@@ -46,7 +108,7 @@ Import the package in your Dart code:
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 ```
 
-## Usage
+## 📚 Usage
 
 ### Example 1: Basic Connection to Reverb Server Using Singleton
 
@@ -508,7 +570,110 @@ class ConnectionMonitor extends StatelessWidget {
 }
 ```
 
-## Configuration
+## 🔑 API Key and Cluster Support
+
+### API Key Authentication
+
+The package now supports API key-based authentication for enhanced security:
+
+```dart
+final client = ReverbClient.instance(
+  host: 'localhost',
+  port: 8080,
+  appKey: 'your-app-key',
+  apiKey: 'your-api-key',  // NEW: API key for authentication
+);
+```
+
+The API key is automatically included in:
+
+- WebSocket connection headers as `Authorization: Bearer {apiKey}`
+- Private channel authentication headers
+
+### Cluster Configuration
+
+Use predefined cluster configurations for easier deployment:
+
+```dart
+final client = ReverbClient.instance(
+  cluster: 'us-east-1',    // Automatically configures host, port, TLS
+  appKey: 'your-app-key',
+  apiKey: 'your-api-key',
+);
+```
+
+#### Available Clusters
+
+| Cluster          | Region                   | Host                               | Port | TLS |
+| ---------------- | ------------------------ | ---------------------------------- | ---- | --- |
+| `us-east-1`      | US East (N. Virginia)    | `reverb-us-east-1.pusher.com`      | 443  | ✅  |
+| `us-west-2`      | US West (Oregon)         | `reverb-us-west-2.pusher.com`      | 443  | ✅  |
+| `eu-west-1`      | Europe (Ireland)         | `reverb-eu-west-1.pusher.com`      | 443  | ✅  |
+| `ap-southeast-1` | Asia Pacific (Singapore) | `reverb-ap-southeast-1.pusher.com` | 443  | ✅  |
+| `local`          | Local Development        | `localhost`                        | 8080 | ❌  |
+| `staging`        | Staging Environment      | `staging-reverb.pusher.com`        | 443  | ✅  |
+
+### Mixed Configuration
+
+You can combine cluster settings with explicit parameters:
+
+```dart
+final client = ReverbClient.instance(
+  cluster: 'us-east-1',           // Sets host, port, TLS
+  appKey: 'your-app-key',
+  apiKey: 'your-api-key',
+  wsPath: '/custom/path',         // Override cluster default
+);
+```
+
+### Configuration Resolution
+
+The package intelligently resolves configuration with the following priority:
+
+1. **Explicit parameters** (host, port, useTLS) - highest priority
+2. **Cluster configuration** - applied when cluster is specified
+3. **Default values** - fallback for unspecified parameters
+
+### Helper Methods
+
+Access configuration information:
+
+```dart
+final client = ReverbClient.instance(/* ... */);
+
+// Get available clusters
+final clusters = client.availableClusters;
+print('Available clusters: $clusters');
+
+// Get cluster configuration
+final config = client.getClusterConfig('us-east-1');
+print('Host: ${config?.host}, Port: ${config?.port}');
+
+// Check if using cluster
+if (client.isUsingCluster) {
+  print('Using cluster: ${client.cluster}');
+}
+
+// Get effective configuration
+print('Effective host: ${client.effectiveHost}');
+print('Effective port: ${client.effectivePort}');
+print('Using TLS: ${client.effectiveUseTLS}');
+```
+
+### Backward Compatibility
+
+All existing code continues to work without changes:
+
+```dart
+// This still works exactly as before
+final client = ReverbClient.instance(
+  host: 'localhost',
+  port: 8080,
+  appKey: 'your-app-key',
+);
+```
+
+## ⚙️ Configuration
 
 ### ReverbClient Options
 
@@ -519,6 +684,8 @@ The `ReverbClient.instance()` method accepts the following parameters:
 | `host`           | `String`                           | Yes (first call) | -                      | Reverb server hostname                           |
 | `port`           | `int`                              | Yes (first call) | -                      | Reverb server port                               |
 | `appKey`         | `String`                           | Yes (first call) | -                      | Application key for authentication               |
+| `apiKey`         | `String?`                          | No               | `null`                 | API key for authentication (NEW)                 |
+| `cluster`        | `String?`                          | No               | `null`                 | Cluster identifier for predefined configs (NEW)  |
 | `wsPath`         | `String`                           | No               | `/`                    | Custom WebSocket path (e.g., `/app/websocket`)   |
 | `authorizer`     | `Authorizer`                       | No               | `null`                 | Custom authorizer function for private channels  |
 | `authEndpoint`   | `String`                           | No               | `'/broadcasting/auth'` | Authentication endpoint URL for private channels |
@@ -553,7 +720,7 @@ Future<Map<String, String>> customAuthorizer(String channelName, String socketId
 }
 ```
 
-## Error Handling and Exceptions
+## 🚨 Error Handling and Exceptions
 
 The package provides a comprehensive hierarchy of typed exceptions that allow you to programmatically handle different failure modes. All package-specific exceptions extend from `PusherException`, enabling you to catch all errors with a single handler or handle specific error types individually.
 
@@ -826,7 +993,7 @@ ChannelException: Authorizer and authEndpoint must be configured for private cha
 InvalidChannelNameException: Private channel name must start with "private-" prefix (Channel: "invalid-name")
 ```
 
-## API Reference
+## 📖 API Reference
 
 ### ReverbClient
 
@@ -885,7 +1052,7 @@ Enum representing channel subscription states:
 - `subscribing` - Subscription in progress
 - `subscribed` - Successfully subscribed
 
-## Testing
+## 🧪 Testing
 
 ### Running Tests
 
@@ -918,7 +1085,7 @@ This package maintains over 90% test coverage, including:
 - Mock-based testing for WebSocket and HTTP dependencies
 - Stream testing with proper async patterns
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Here are some ways you can contribute:
 

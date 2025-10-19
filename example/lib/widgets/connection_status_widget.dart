@@ -32,7 +32,9 @@ class ConnectionStatusWidget extends StatelessWidget {
             statusColor = Colors.green;
             statusIcon = Icons.check_circle;
             statusText = 'Connected';
-            statusDescription = 'Socket ID: ${client.socketId ?? "N/A"}';
+            final socketId = client.socketId ?? "N/A";
+            final clusterInfo = client.isUsingCluster ? ' (Cluster: ${client.cluster})' : '';
+            statusDescription = 'Socket ID: $socketId$clusterInfo';
             break;
           case reverb.ConnectionState.reconnecting:
             statusColor = Colors.amber;

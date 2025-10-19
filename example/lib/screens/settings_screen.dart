@@ -19,8 +19,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _wsPathController;
   late TextEditingController _authTokenController;
 
+  // NEW: API key and cluster controllers
+  late TextEditingController _apiKeyController;
+  late TextEditingController _clusterController;
+
   bool _isSaving = false;
   bool _showAuthToken = false;
+  bool _showApiKey = false;
   bool _useTLS = false;
 
   @override
@@ -37,6 +42,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _authEndpointController = TextEditingController(text: config['authEndpoint']);
     _wsPathController = TextEditingController(text: config['wsPath']);
     _authTokenController = TextEditingController(text: config['authToken']);
+
+    // NEW: Load API key and cluster
+    _apiKeyController = TextEditingController(text: config['apiKey'] ?? '');
+    _clusterController = TextEditingController(text: config['cluster'] ?? '');
+
     _useTLS = config['useTLS'] ?? false;
   }
 
@@ -58,6 +68,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         wsPath: _wsPathController.text.trim(),
         authToken: _authTokenController.text.trim(),
         useTLS: _useTLS,
+        apiKey: _apiKeyController.text.trim().isNotEmpty ? _apiKeyController.text.trim() : null, // NEW
+        cluster: _clusterController.text.trim().isNotEmpty ? _clusterController.text.trim() : null, // NEW
       );
 
       // Reinitialize the client with new configuration
@@ -94,6 +106,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _authEndpointController.text = 'http://localhost:8000/broadcasting/auth';
                 _wsPathController.text = '/';
                 _authTokenController.text = '';
+                _apiKeyController.text = ''; // NEW
+                _clusterController.text = ''; // NEW
                 _useTLS = false;
               });
               Navigator.pop(context);
@@ -220,6 +234,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                       secondary: Icon(_useTLS ? Icons.lock : Icons.lock_open),
                     ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _apiKeyController,
+                      decoration: InputDecoration(
+                        labelText: 'API Key (Optional)',
+                        hintText: 'your-api-key',
+                        prefixIcon: const Icon(Icons.vpn_key),
+                        helperText: 'Optional: API key for authentication',
+                        suffixIcon: IconButton(
+                          icon: Icon(_showApiKey ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _showApiKey = !_showApiKey;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: !_showApiKey,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _clusterController,
+                      decoration: const InputDecoration(
+                        labelText: 'Cluster (Optional)',
+                        hintText: 'us-east-1',
+                        prefixIcon: Icon(Icons.cloud),
+                        helperText: 'Optional: Predefined cluster configuration (us-east-1, eu-west-1, local, etc.)',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -299,7 +342,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       '2. Start Reverb server:\n'
                       '   php artisan reverb:start\n\n'
                       '3. Update the host and port above to match your setup\n\n'
-                      '4. For authentication, provide a valid Bearer token',
+                      '4. For authentication, provide a valid Bearer token\n\n'
+                      '5. NEW: Use API Key for enhanced authentication\n\n'
+                      '6. NEW: Use Cluster for predefined configurations\n'
+                      '   Available: us-east-1, eu-west-1, local, staging',
                       style: TextStyle(fontSize: 13),
                     ),
                   ],
@@ -332,6 +378,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _authEndpointController.dispose();
     _wsPathController.dispose();
     _authTokenController.dispose();
+    _apiKeyController.dispose(); // NEW
+    _clusterController.dispose(); // NEW
     super.dispose();
   }
 }
