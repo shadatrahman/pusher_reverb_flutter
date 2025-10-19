@@ -1,6 +1,6 @@
 name: pusher_reverb_flutter
 description: "A Flutter Pusher client for Laravel Reverb, with support for custom WebSocket paths and dynamic authentication headers. Aims to be a reliable and feature-rich alternative."
-version: 0.0.2
+version: 0.0.3
 repository: https://github.com/shadatrahman/pusher_reverb_flutter
 
 environment:
