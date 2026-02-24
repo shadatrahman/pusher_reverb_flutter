@@ -739,6 +739,12 @@ class ReverbClient {
     final event = decodedMessage['event'];
     final data = decodedMessage['data'];
 
+    // Respond to server ping to keep the connection alive (Laravel Reverb ping_interval)
+   if (event == 'pusher:ping') {
+      _sendMessage(jsonEncode({'event': 'pusher:pong', 'data': data}));
+      return;
+    }
+
     if (event == 'pusher:connection_established') {
       // Safely handle connection data - data may be null or not a String
       if (data == null || data is! String) {
