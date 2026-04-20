@@ -4,8 +4,7 @@ version: 0.0.4
 repository: https://github.com/shadatrahman/pusher_reverb_flutter
 
 environment:
-  sdk: ^3.9.2
-  flutter: ">=1.17.0"
+  sdk: ">=3.2.3 <4.0.0"
 
 dependencies:
   flutter:
