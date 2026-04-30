@@ -261,6 +261,31 @@ class Channel {
     _sendMessage(message);
   }
 
+  /// Sends a client-to-client (whisper) event to other subscribed clients on this channel.
+  ///
+  /// The [eventName] should be the logical name (e.g. 'typing'). The method will
+  /// prefix it with `client-` when sending so it becomes `client-typing` as required
+  /// by the underlying protocol. The channel must be subscribed when calling this.
+  void whisper(String eventName, dynamic data) {
+    if (eventName.isEmpty) {
+      throw ArgumentError('Event name cannot be empty');
+    }
+
+    if (_state != ChannelState.subscribed) {
+      throw StateError('Channel must be subscribed to send client events (whisper)');
+    }
+
+    final clientEventName = eventName.startsWith('client-') ? eventName : 'client-$eventName';
+
+    final message = {
+      'event': clientEventName,
+      'data': data,
+      'channel': name,
+    };
+
+    sendMessage(_encodeMessage(message));
+  }
+
   /// Sets the channel state and notifies listeners.
   /// This is a protected method that can be used by subclasses.
   @protected

@@ -159,6 +159,54 @@ void main() {
       });
     });
 
+    group('Whisper', () {
+      test('sends client event when subscribed', () async {
+        // Arrange
+        await channel.subscribe();
+        channel.handleSubscriptionSucceeded();
+        sentMessages.clear();
+
+        // Act
+        channel.whisper('typing', {'user': 'alice'});
+
+        // Assert
+        expect(sentMessages.length, 1);
+        final message = sentMessages.first;
+        expect(message, contains('"event":"client-typing"'));
+        expect(message, contains('"channel":"test-channel"'));
+        expect(message, contains('"user":"alice"'));
+      });
+
+      test('throws when not subscribed', () {
+        // Act & Assert
+        expect(() => channel.whisper('typing', {}), throwsA(isA<StateError>()));
+      });
+
+      test('does not double prefix client-', () async {
+        // Arrange
+        await channel.subscribe();
+        channel.handleSubscriptionSucceeded();
+        sentMessages.clear();
+
+        // Act
+        channel.whisper('client-typing', 'data');
+
+        // Assert
+        expect(sentMessages.length, 1);
+        final message = sentMessages.first;
+        expect(message, contains('"event":"client-typing"'));
+      });
+
+      test('throws for empty event name', () async {
+        // Arrange
+        await channel.subscribe();
+        channel.handleSubscriptionSucceeded();
+
+        // Act & Assert
+        expect(() => channel.whisper('', {}), throwsA(isA<ArgumentError>()));
+      });
+    });
+
     group('Event Handling', () {
       test('binds event listener', () {
         // Arrange
