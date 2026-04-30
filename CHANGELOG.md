@@ -1,3 +1,25 @@
+## 0.0.5
+
+### New Features
+
+- **Added server ping response handling**: Implemented automatic pong response to Laravel Reverb server ping messages to maintain WebSocket connection
+  - Added handling for 'pusher:ping' events in ReverbClient
+  - Automatically responds with 'pusher:pong' to keep connection alive
+  - Helps prevent connection timeouts in Laravel Reverb deployments with ping_interval configured
+
+- **Added whisper method for client-to-client events**: Implemented client-to-client event sending capability on channels
+  - Added `whisper(String eventName, dynamic data)` method to Channel class
+  - Sends client events prefixed with 'client-' as required by Pusher protocol
+  - Includes validation for empty event names and subscription state
+  - Prevents double prefixing of 'client-' in event names
+  - Added comprehensive test coverage for whisper functionality
+
+### Technical Improvements
+
+- **Updated Dart SDK constraints**: Reduced minimum Dart SDK requirement for broader compatibility
+  - Changed sdk constraint from '^3.9.2' to '>=3.2.3 <4.0.0'
+  - Allows usage with older Flutter/Dart versions while maintaining null safety
+
 ## 0.0.4
 
 ### Bug Fixes
