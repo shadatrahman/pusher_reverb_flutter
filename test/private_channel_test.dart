@@ -16,7 +16,10 @@ void main() {
       sentMessages = [];
 
       mockAuthorizer = (String channelName, String socketId) async {
-        return {'Authorization': 'Bearer test-token', 'X-Custom-Header': 'test-value'};
+        return {
+          'Authorization': 'Bearer test-token',
+          'X-Custom-Header': 'test-value',
+        };
       };
     });
 
@@ -41,7 +44,13 @@ void main() {
 
       test('should throw error for invalid private channel name', () {
         expect(
-          () => PrivateChannel(name: 'public-channel', authorizer: mockAuthorizer, authEndpoint: testAuthEndpoint, socketId: testSocketId, sendMessage: (String message) {}),
+          () => PrivateChannel(
+            name: 'public-channel',
+            authorizer: mockAuthorizer,
+            authEndpoint: testAuthEndpoint,
+            socketId: testSocketId,
+            sendMessage: (String message) {},
+          ),
           throwsA(isA<InvalidChannelNameException>()),
         );
       });
@@ -100,7 +109,10 @@ void main() {
         String? calledChannelName;
         String? calledSocketId;
 
-        Future<Map<String, String>> customAuthorizer(String channelName, String socketId) async {
+        Future<Map<String, String>> customAuthorizer(
+          String channelName,
+          String socketId,
+        ) async {
           authorizerCalled = true;
           calledChannelName = channelName;
           calledSocketId = socketId;

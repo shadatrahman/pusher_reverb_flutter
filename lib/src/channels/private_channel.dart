@@ -29,7 +29,13 @@ class PrivateChannel extends Channel {
   /// [authEndpoint] The URL endpoint for authentication requests.
   /// [socketId] The socket ID for authentication.
   /// [sendMessage] Callback for sending WebSocket messages.
-  PrivateChannel({required super.name, required this.authorizer, required this.authEndpoint, required this.socketId, required super.sendMessage}) {
+  PrivateChannel({
+    required super.name,
+    required this.authorizer,
+    required this.authEndpoint,
+    required this.socketId,
+    required super.sendMessage,
+  }) {
     // Only validate if this is actually a PrivateChannel, not a subclass
     if (runtimeType == PrivateChannel) {
       validatePrivateChannelName(name);
@@ -89,7 +95,9 @@ class PrivateChannel extends Channel {
   /// Returns the authentication key from the server response.
   ///
   /// Throws [AuthenticationException] if authentication fails.
-  Future<String> _authenticateWithServer(Map<String, String> authHeaders) async {
+  Future<String> _authenticateWithServer(
+    Map<String, String> authHeaders,
+  ) async {
     try {
       // Prepare the request body with channel name and socket ID
       final requestBody = {'socket_id': socketId, 'channel_name': name};
@@ -111,24 +119,45 @@ class PrivateChannel extends Channel {
         final authKey = responseData['auth'] as String?;
 
         if (authKey == null || authKey.isEmpty) {
-          throw AuthenticationException(message: 'Authentication response missing auth key', channelName: name, statusCode: response.statusCode);
+          throw AuthenticationException(
+            message: 'Authentication response missing auth key',
+            channelName: name,
+            statusCode: response.statusCode,
+          );
         }
 
         return authKey;
       } else if (response.statusCode == 403) {
-        throw AuthenticationException(message: 'Authentication forbidden - insufficient permissions', channelName: name, statusCode: response.statusCode);
+        throw AuthenticationException(
+          message: 'Authentication forbidden - insufficient permissions',
+          channelName: name,
+          statusCode: response.statusCode,
+        );
       } else {
-        throw AuthenticationException(message: 'Authentication failed with status ${response.statusCode}', channelName: name, statusCode: response.statusCode);
+        throw AuthenticationException(
+          message: 'Authentication failed with status ${response.statusCode}',
+          channelName: name,
+          statusCode: response.statusCode,
+        );
       }
     } on http.ClientException catch (e) {
-      throw AuthenticationException(message: 'Network error during authentication: ${e.message}', channelName: name);
+      throw AuthenticationException(
+        message: 'Network error during authentication: ${e.message}',
+        channelName: name,
+      );
     } on FormatException catch (e) {
-      throw AuthenticationException(message: 'Invalid response format during authentication: ${e.message}', channelName: name);
+      throw AuthenticationException(
+        message: 'Invalid response format during authentication: ${e.message}',
+        channelName: name,
+      );
     } catch (e) {
       if (e is AuthenticationException) {
         rethrow;
       }
-      throw AuthenticationException(message: 'Unexpected error during authentication: $e', channelName: name);
+      throw AuthenticationException(
+        message: 'Unexpected error during authentication: $e',
+        channelName: name,
+      );
     }
   }
 

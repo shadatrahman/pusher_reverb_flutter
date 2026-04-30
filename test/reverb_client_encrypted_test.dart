@@ -17,7 +17,13 @@ void main() {
       // Valid base64-encoded 32-byte key
       testEncryptionKey = base64.encode(List<int>.generate(32, (i) => i));
 
-      client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer, authEndpoint: 'https://example.com/auth');
+      client = ReverbClient.forTesting(
+        host: 'localhost',
+        port: 8080,
+        appKey: 'test-key',
+        authorizer: mockAuthorizer,
+        authEndpoint: 'https://example.com/auth',
+      );
     });
 
     tearDown(() async {
@@ -29,31 +35,68 @@ void main() {
     group('encryptedChannel', () {
       test('should throw error if authorizer is not configured', () {
         // Arrange
-        final clientWithoutAuthorizer = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authEndpoint: 'https://example.com/auth');
+        final clientWithoutAuthorizer = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          authEndpoint: 'https://example.com/auth',
+        );
 
         // Act & Assert
         expect(
-          () => clientWithoutAuthorizer.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
+          () => clientWithoutAuthorizer.encryptedChannel(
+            'private-encrypted-messages',
+            encryptionMasterKey: testEncryptionKey,
+          ),
+          throwsA(
+            isA<ChannelException>().having(
+              (e) => e.message,
+              'message',
+              contains('Authorizer and authEndpoint must be configured'),
+            ),
+          ),
         );
       });
 
       test('should throw error if authEndpoint is not configured', () {
         // Arrange
-        final clientWithoutEndpoint = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer);
+        final clientWithoutEndpoint = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          authorizer: mockAuthorizer,
+        );
 
         // Act & Assert
         expect(
-          () => clientWithoutEndpoint.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
+          () => clientWithoutEndpoint.encryptedChannel(
+            'private-encrypted-messages',
+            encryptionMasterKey: testEncryptionKey,
+          ),
+          throwsA(
+            isA<ChannelException>().having(
+              (e) => e.message,
+              'message',
+              contains('Authorizer and authEndpoint must be configured'),
+            ),
+          ),
         );
       });
 
       test('should throw error if socketId is not available', () {
         // Arrange & Act & Assert
         expect(
-          () => client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey),
-          throwsA(isA<ConnectionException>().having((e) => e.message, 'message', contains('not connected to server'))),
+          () => client.encryptedChannel(
+            'private-encrypted-messages',
+            encryptionMasterKey: testEncryptionKey,
+          ),
+          throwsA(
+            isA<ConnectionException>().having(
+              (e) => e.message,
+              'message',
+              contains('not connected to server'),
+            ),
+          ),
         );
       });
 
@@ -62,9 +105,21 @@ void main() {
         client.socketId = 'test-socket-id';
 
         // Act & Assert - Wrong prefix
-        expect(() => client.encryptedChannel('private-messages', encryptionMasterKey: testEncryptionKey), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => client.encryptedChannel(
+            'private-messages',
+            encryptionMasterKey: testEncryptionKey,
+          ),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
 
-        expect(() => client.encryptedChannel('public-encrypted-messages', encryptionMasterKey: testEncryptionKey), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => client.encryptedChannel(
+            'public-encrypted-messages',
+            encryptionMasterKey: testEncryptionKey,
+          ),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should throw error for invalid encryption key', () {
@@ -72,14 +127,32 @@ void main() {
         client.socketId = 'test-socket-id';
 
         // Act & Assert - Empty key
-        expect(() => client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: ''), throwsA(isA<ArgumentError>()));
+        expect(
+          () => client.encryptedChannel(
+            'private-encrypted-messages',
+            encryptionMasterKey: '',
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
 
         // Wrong length key
         final shortKey = base64.encode(List<int>.generate(16, (i) => i));
-        expect(() => client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: shortKey), throwsA(isA<ArgumentError>()));
+        expect(
+          () => client.encryptedChannel(
+            'private-encrypted-messages',
+            encryptionMasterKey: shortKey,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
 
         // Invalid base64
-        expect(() => client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: 'not-valid-base64!!!'), throwsA(isA<ArgumentError>()));
+        expect(
+          () => client.encryptedChannel(
+            'private-encrypted-messages',
+            encryptionMasterKey: 'not-valid-base64!!!',
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
       });
 
       test('should create encrypted channel with valid parameters', () {
@@ -87,7 +160,10 @@ void main() {
         client.socketId = 'test-socket-id';
 
         // Act
-        final channel = client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey);
+        final channel = client.encryptedChannel(
+          'private-encrypted-messages',
+          encryptionMasterKey: testEncryptionKey,
+        );
 
         // Assert
         expect(channel, isA<EncryptedChannel>());
@@ -101,8 +177,14 @@ void main() {
         client.socketId = 'test-socket-id';
 
         // Act
-        final channel1 = client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey);
-        final channel2 = client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey);
+        final channel1 = client.encryptedChannel(
+          'private-encrypted-messages',
+          encryptionMasterKey: testEncryptionKey,
+        );
+        final channel2 = client.encryptedChannel(
+          'private-encrypted-messages',
+          encryptionMasterKey: testEncryptionKey,
+        );
 
         // Assert
         expect(channel1, same(channel2));
@@ -118,7 +200,13 @@ void main() {
         client.subscribeToChannel('private-encrypted-test');
 
         // Act & Assert
-        expect(() => client.encryptedChannel('private-encrypted-test', encryptionMasterKey: testEncryptionKey), throwsA(isA<ChannelException>()));
+        expect(
+          () => client.encryptedChannel(
+            'private-encrypted-test',
+            encryptionMasterKey: testEncryptionKey,
+          ),
+          throwsA(isA<ChannelException>()),
+        );
       });
     });
 
@@ -129,7 +217,10 @@ void main() {
 
         // Act
         final publicChannel = client.subscribeToChannel('public-channel');
-        final encryptedChannel = client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey);
+        final encryptedChannel = client.encryptedChannel(
+          'private-encrypted-messages',
+          encryptionMasterKey: testEncryptionKey,
+        );
 
         // Assert
         expect(publicChannel, isA<Channel>());
@@ -137,7 +228,10 @@ void main() {
         expect(publicChannel, isNot(isA<EncryptedChannel>()));
 
         expect(encryptedChannel, isA<EncryptedChannel>());
-        expect(encryptedChannel, isA<PrivateChannel>()); // EncryptedChannel extends PrivateChannel
+        expect(
+          encryptedChannel,
+          isA<PrivateChannel>(),
+        ); // EncryptedChannel extends PrivateChannel
 
         expect(client.subscribedChannels.length, 2);
         expect(client.subscribedChannels, contains(publicChannel));
@@ -151,7 +245,10 @@ void main() {
         // Subscribe to all types (avoid auto-subscription for private channels)
         client.subscribeToChannel('public-channel');
         client.subscribeToChannel('public-channel-2');
-        client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey);
+        client.encryptedChannel(
+          'private-encrypted-messages',
+          encryptionMasterKey: testEncryptionKey,
+        );
 
         expect(client.subscribedChannels.length, 3);
 
@@ -172,11 +269,17 @@ void main() {
 
         // Create channels (avoid subscribeToPrivateChannel to prevent auto-subscribe)
         final publicChannel = client.subscribeToChannel('public-channel');
-        final encryptedChannel = client.encryptedChannel('private-encrypted-messages', encryptionMasterKey: testEncryptionKey);
+        final encryptedChannel = client.encryptedChannel(
+          'private-encrypted-messages',
+          encryptionMasterKey: testEncryptionKey,
+        );
 
         // Act & Assert
         expect(client.getChannel('public-channel'), publicChannel);
-        expect(client.getChannel('private-encrypted-messages'), encryptedChannel);
+        expect(
+          client.getChannel('private-encrypted-messages'),
+          encryptedChannel,
+        );
         expect(client.getChannel('nonexistent'), isNull);
       });
 
@@ -187,12 +290,17 @@ void main() {
         // Act (avoid subscribeToPrivateChannel to prevent auto-subscribe)
         client.subscribeToChannel('public-1');
         client.subscribeToChannel('public-2');
-        client.encryptedChannel('private-encrypted-1', encryptionMasterKey: testEncryptionKey);
+        client.encryptedChannel(
+          'private-encrypted-1',
+          encryptionMasterKey: testEncryptionKey,
+        );
 
         // Assert
         expect(client.subscribedChannels.length, 3);
 
-        final channelNames = client.subscribedChannels.map((c) => c.name).toList();
+        final channelNames = client.subscribedChannels
+            .map((c) => c.name)
+            .toList();
         expect(channelNames, contains('public-1'));
         expect(channelNames, contains('public-2'));
         expect(channelNames, contains('private-encrypted-1'));
@@ -200,37 +308,52 @@ void main() {
     });
 
     group('authentication flow', () {
-      test('should call authorizer with correct parameters for encrypted channel', () async {
-        // Arrange
-        client.socketId = 'test-socket-id';
-        bool authorizerCalled = false;
-        String? calledChannelName;
-        String? calledSocketId;
+      test(
+        'should call authorizer with correct parameters for encrypted channel',
+        () async {
+          // Arrange
+          client.socketId = 'test-socket-id';
+          bool authorizerCalled = false;
+          String? calledChannelName;
+          String? calledSocketId;
 
-        Future<Map<String, String>> customAuthorizer(String channelName, String socketId) async {
-          authorizerCalled = true;
-          calledChannelName = channelName;
-          calledSocketId = socketId;
-          return {'Authorization': 'Bearer test-token'};
-        }
+          Future<Map<String, String>> customAuthorizer(
+            String channelName,
+            String socketId,
+          ) async {
+            authorizerCalled = true;
+            calledChannelName = channelName;
+            calledSocketId = socketId;
+            return {'Authorization': 'Bearer test-token'};
+          }
 
-        final customClient = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: customAuthorizer, authEndpoint: 'https://example.com/auth');
-        customClient.socketId = 'test-socket-id';
+          final customClient = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-key',
+            authorizer: customAuthorizer,
+            authEndpoint: 'https://example.com/auth',
+          );
+          customClient.socketId = 'test-socket-id';
 
-        // Act
-        final channel = customClient.encryptedChannel('private-encrypted-test', encryptionMasterKey: testEncryptionKey);
+          // Act
+          final channel = customClient.encryptedChannel(
+            'private-encrypted-test',
+            encryptionMasterKey: testEncryptionKey,
+          );
 
-        try {
-          await channel.subscribe();
-        } catch (e) {
-          // Expected to fail due to HTTP call
-        }
+          try {
+            await channel.subscribe();
+          } catch (e) {
+            // Expected to fail due to HTTP call
+          }
 
-        // Assert
-        expect(authorizerCalled, true);
-        expect(calledChannelName, 'private-encrypted-test');
-        expect(calledSocketId, 'test-socket-id');
-      });
+          // Assert
+          expect(authorizerCalled, true);
+          expect(calledChannelName, 'private-encrypted-test');
+          expect(calledSocketId, 'test-socket-id');
+        },
+      );
     });
   });
 }

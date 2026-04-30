@@ -30,7 +30,10 @@ void main() {
       // Assert
       expect(exception.message, equals('Connection failed'));
       expect(exception.cause, isNull);
-      expect(exception.toString(), equals('ConnectionException: Connection failed'));
+      expect(
+        exception.toString(),
+        equals('ConnectionException: Connection failed'),
+      );
       expect(exception, isA<PusherException>());
       expect(exception, isA<Exception>());
     });
@@ -67,7 +70,10 @@ void main() {
       final exception = ConnectionException('Failed', cause: cause);
 
       // Assert
-      expect(exception.toString(), equals('ConnectionException: Failed (Caused by: String cause)'));
+      expect(
+        exception.toString(),
+        equals('ConnectionException: Failed (Caused by: String cause)'),
+      );
     });
   });
 
@@ -85,7 +91,10 @@ void main() {
 
     test('should create exception with message and channel name', () {
       // Arrange & Act
-      final exception = ChannelException('Subscription failed', channelName: 'private-chat');
+      final exception = ChannelException(
+        'Subscription failed',
+        channelName: 'private-chat',
+      );
 
       // Assert
       expect(exception.message, equals('Subscription failed'));
@@ -97,7 +106,10 @@ void main() {
 
     test('should be const constructible', () {
       // Arrange & Act
-      const exception = ChannelException('Const error', channelName: 'test-channel');
+      const exception = ChannelException(
+        'Const error',
+        channelName: 'test-channel',
+      );
 
       // Assert
       expect(exception.message, equals('Const error'));
@@ -109,14 +121,20 @@ void main() {
       final exception = ChannelException('Error', channelName: 'my-channel');
 
       // Assert
-      expect(exception.toString(), equals('ChannelException: Error for channel "my-channel"'));
+      expect(
+        exception.toString(),
+        equals('ChannelException: Error for channel "my-channel"'),
+      );
     });
   });
 
   group('InvalidChannelNameException', () {
     test('should create exception with message and channel name', () {
       // Arrange & Act
-      final exception = InvalidChannelNameException('Channel name is invalid', 'bad-name');
+      final exception = InvalidChannelNameException(
+        'Channel name is invalid',
+        'bad-name',
+      );
 
       // Assert
       expect(exception.message, equals('Channel name is invalid'));
@@ -138,17 +156,28 @@ void main() {
 
     test('toString should format correctly', () {
       // Arrange & Act
-      final exception = InvalidChannelNameException('Must start with prefix', 'invalid');
+      final exception = InvalidChannelNameException(
+        'Must start with prefix',
+        'invalid',
+      );
 
       // Assert
-      expect(exception.toString(), equals('InvalidChannelNameException: Must start with prefix (Channel: "invalid")'));
+      expect(
+        exception.toString(),
+        equals(
+          'InvalidChannelNameException: Must start with prefix (Channel: "invalid")',
+        ),
+      );
     });
   });
 
   group('AuthenticationException', () {
     test('should create exception with message and channel name', () {
       // Arrange & Act
-      final exception = AuthenticationException(message: 'Auth failed', channelName: 'private-chat');
+      final exception = AuthenticationException(
+        message: 'Auth failed',
+        channelName: 'private-chat',
+      );
 
       // Assert
       expect(exception.message, equals('Auth failed'));
@@ -162,7 +191,11 @@ void main() {
 
     test('should create exception with status code', () {
       // Arrange & Act
-      final exception = AuthenticationException(message: 'Forbidden', statusCode: 403, channelName: 'private-chat');
+      final exception = AuthenticationException(
+        message: 'Forbidden',
+        statusCode: 403,
+        channelName: 'private-chat',
+      );
 
       // Assert
       expect(exception.message, equals('Forbidden'));
@@ -173,7 +206,10 @@ void main() {
 
     test('should be const constructible', () {
       // Arrange & Act
-      const exception = AuthenticationException(message: 'Const auth error', channelName: 'test-channel');
+      const exception = AuthenticationException(
+        message: 'Const auth error',
+        channelName: 'test-channel',
+      );
 
       // Assert
       expect(exception.message, equals('Const auth error'));
@@ -182,18 +218,33 @@ void main() {
 
     test('toString should format correctly without status code', () {
       // Arrange & Act
-      final exception = AuthenticationException(message: 'Failed', channelName: 'private-test');
+      final exception = AuthenticationException(
+        message: 'Failed',
+        channelName: 'private-test',
+      );
 
       // Assert
-      expect(exception.toString(), equals('AuthenticationException: Failed for channel "private-test"'));
+      expect(
+        exception.toString(),
+        equals('AuthenticationException: Failed for channel "private-test"'),
+      );
     });
 
     test('toString should format correctly with status code', () {
       // Arrange & Act
-      final exception = AuthenticationException(message: 'Forbidden', statusCode: 403, channelName: 'private-chat');
+      final exception = AuthenticationException(
+        message: 'Forbidden',
+        statusCode: 403,
+        channelName: 'private-chat',
+      );
 
       // Assert
-      expect(exception.toString(), equals('AuthenticationException: Forbidden (HTTP 403) for channel "private-chat"'));
+      expect(
+        exception.toString(),
+        equals(
+          'AuthenticationException: Forbidden (HTTP 403) for channel "private-chat"',
+        ),
+      );
     });
   });
 
@@ -202,7 +253,10 @@ void main() {
       // Arrange & Act
       final pusherEx = PusherException('base');
       final connectionEx = ConnectionException('connection');
-      final authEx = AuthenticationException(message: 'auth', channelName: 'private-test');
+      final authEx = AuthenticationException(
+        message: 'auth',
+        channelName: 'private-test',
+      );
       final channelEx = ChannelException('channel');
       final invalidNameEx = InvalidChannelNameException('invalid', 'bad-name');
 

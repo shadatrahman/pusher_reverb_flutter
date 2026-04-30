@@ -11,7 +11,13 @@ void main() {
         return {'Authorization': 'Bearer test-token'};
       };
 
-      client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer, authEndpoint: 'https://example.com/auth');
+      client = ReverbClient.forTesting(
+        host: 'localhost',
+        port: 8080,
+        appKey: 'test-key',
+        authorizer: mockAuthorizer,
+        authEndpoint: 'https://example.com/auth',
+      );
     });
 
     tearDown(() async {
@@ -22,32 +28,70 @@ void main() {
 
     group('subscribeToPrivateChannel', () {
       test('should throw error if authorizer is not configured', () {
-        final clientWithoutAuthorizer = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authEndpoint: 'https://example.com/auth');
+        final clientWithoutAuthorizer = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          authEndpoint: 'https://example.com/auth',
+        );
 
         expect(
-          () => clientWithoutAuthorizer.subscribeToPrivateChannel('private-test-channel'),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
+          () => clientWithoutAuthorizer.subscribeToPrivateChannel(
+            'private-test-channel',
+          ),
+          throwsA(
+            isA<ChannelException>().having(
+              (e) => e.message,
+              'message',
+              contains('Authorizer and authEndpoint must be configured'),
+            ),
+          ),
         );
       });
 
       test('should throw error if authEndpoint is not configured', () {
-        final clientWithoutEndpoint = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer);
+        final clientWithoutEndpoint = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          authorizer: mockAuthorizer,
+        );
 
         expect(
-          () => clientWithoutEndpoint.subscribeToPrivateChannel('private-test-channel'),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
+          () => clientWithoutEndpoint.subscribeToPrivateChannel(
+            'private-test-channel',
+          ),
+          throwsA(
+            isA<ChannelException>().having(
+              (e) => e.message,
+              'message',
+              contains('Authorizer and authEndpoint must be configured'),
+            ),
+          ),
         );
       });
 
       test('should throw error if socketId is not available', () {
-        expect(() => client.subscribeToPrivateChannel('private-test-channel'), throwsA(isA<ConnectionException>().having((e) => e.message, 'message', contains('not connected to server'))));
+        expect(
+          () => client.subscribeToPrivateChannel('private-test-channel'),
+          throwsA(
+            isA<ConnectionException>().having(
+              (e) => e.message,
+              'message',
+              contains('not connected to server'),
+            ),
+          ),
+        );
       });
 
       test('should throw error for invalid private channel name', () {
         // Set socket ID to bypass the socket ID check
         client.socketId = 'test-socket-id';
 
-        expect(() => client.subscribeToPrivateChannel('public-channel'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => client.subscribeToPrivateChannel('public-channel'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
     });
 
@@ -62,7 +106,9 @@ void main() {
         expect(publicChannel, isNot(isA<PrivateChannel>()));
 
         // Subscribe to private channel
-        final privateChannel = client.subscribeToPrivateChannel('private-channel');
+        final privateChannel = client.subscribeToPrivateChannel(
+          'private-channel',
+        );
         expect(privateChannel, isA<PrivateChannel>());
 
         // Both should be in subscribed channels
@@ -96,7 +142,9 @@ void main() {
 
         // Create channels
         final publicChannel = client.subscribeToChannel('public-channel');
-        final privateChannel = client.subscribeToPrivateChannel('private-channel');
+        final privateChannel = client.subscribeToPrivateChannel(
+          'private-channel',
+        );
 
         // Test getChannel returns correct types
         expect(client.getChannel('public-channel'), publicChannel);
@@ -104,30 +152,46 @@ void main() {
         expect(client.getChannel('nonexistent'), isNull);
       });
 
-      test('should return existing private channel on duplicate subscription', () {
-        // Set socket ID to bypass the socket ID check
-        client.socketId = 'test-socket-id';
+      test(
+        'should return existing private channel on duplicate subscription',
+        () {
+          // Set socket ID to bypass the socket ID check
+          client.socketId = 'test-socket-id';
 
-        final firstChannel = client.subscribeToPrivateChannel('private-test-channel');
-        final secondChannel = client.subscribeToPrivateChannel('private-test-channel');
+          final firstChannel = client.subscribeToPrivateChannel(
+            'private-test-channel',
+          );
+          final secondChannel = client.subscribeToPrivateChannel(
+            'private-test-channel',
+          );
 
-        expect(firstChannel, same(secondChannel));
-        expect(client.subscribedChannels.length, 1);
-      });
+          expect(firstChannel, same(secondChannel));
+          expect(client.subscribedChannels.length, 1);
+        },
+      );
 
-      test('should throw error if trying to convert public to private channel', () {
-        // Set socket ID to bypass the socket ID check
-        client.socketId = 'test-socket-id';
+      test(
+        'should throw error if trying to convert public to private channel',
+        () {
+          // Set socket ID to bypass the socket ID check
+          client.socketId = 'test-socket-id';
 
-        // First subscribe to public channel
-        client.subscribeToChannel('private-test-channel');
+          // First subscribe to public channel
+          client.subscribeToChannel('private-test-channel');
 
-        // Then try to subscribe to private channel with same name
-        expect(
-          () => client.subscribeToPrivateChannel('private-test-channel'),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('already exists as a different channel type'))),
-        );
-      });
+          // Then try to subscribe to private channel with same name
+          expect(
+            () => client.subscribeToPrivateChannel('private-test-channel'),
+            throwsA(
+              isA<ChannelException>().having(
+                (e) => e.message,
+                'message',
+                contains('already exists as a different channel type'),
+              ),
+            ),
+          );
+        },
+      );
     });
   });
 }

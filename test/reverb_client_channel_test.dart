@@ -26,7 +26,12 @@ void main() {
       when(mockChannel.stream).thenAnswer((_) => streamController.stream);
       when(mockChannel.sink).thenReturn(mockSink);
 
-      client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'app-key', channelFactory: (_) => mockChannel);
+      client = ReverbClient.forTesting(
+        host: 'localhost',
+        port: 8080,
+        appKey: 'app-key',
+        channelFactory: (_) => mockChannel,
+      );
     });
 
     tearDown(() {
@@ -62,21 +67,24 @@ void main() {
         expect(client.subscribedChannels.length, 1);
       });
 
-      test('sends pusher:subscribe message when subscribing to channel', () async {
-        // Arrange
-        await client.connect();
+      test(
+        'sends pusher:subscribe message when subscribing to channel',
+        () async {
+          // Arrange
+          await client.connect();
 
-        // Act
-        client.subscribeToChannel('test-channel');
+          // Act
+          client.subscribeToChannel('test-channel');
 
-        // Assert
-        final capturedMessages = verify(mockSink.add(captureAny)).captured;
-        expect(capturedMessages.length, 1);
-        final capturedMessage = capturedMessages.first as String;
-        final message = jsonDecode(capturedMessage);
-        expect(message['event'], 'pusher:subscribe');
-        expect(message['data']['channel'], 'test-channel');
-      });
+          // Assert
+          final capturedMessages = verify(mockSink.add(captureAny)).captured;
+          expect(capturedMessages.length, 1);
+          final capturedMessage = capturedMessages.first as String;
+          final message = jsonDecode(capturedMessage);
+          expect(message['event'], 'pusher:subscribe');
+          expect(message['data']['channel'], 'test-channel');
+        },
+      );
 
       test('handles subscription_succeeded event', () async {
         // Arrange
@@ -142,14 +150,20 @@ void main() {
         expect(channel.state, ChannelState.unsubscribed);
       });
 
-      test('does nothing when unsubscribing from non-existent channel', () async {
-        // Arrange
-        await client.connect();
+      test(
+        'does nothing when unsubscribing from non-existent channel',
+        () async {
+          // Arrange
+          await client.connect();
 
-        // Act & Assert
-        expect(() => client.unsubscribeFromChannel('non-existent'), returnsNormally);
-        verifyNever(mockSink.add(any));
-      });
+          // Act & Assert
+          expect(
+            () => client.unsubscribeFromChannel('non-existent'),
+            returnsNormally,
+          );
+          verifyNever(mockSink.add(any));
+        },
+      );
     });
 
     group('Channel Event Handling', () {
@@ -165,7 +179,11 @@ void main() {
         });
 
         // Act
-        final message = jsonEncode({'event': 'test-event', 'channel': 'test-channel', 'data': 'test-data'});
+        final message = jsonEncode({
+          'event': 'test-event',
+          'channel': 'test-channel',
+          'data': 'test-data',
+        });
         streamController.add(message);
 
         // Assert
@@ -189,7 +207,11 @@ void main() {
         });
 
         // Act
-        final message = jsonEncode({'event': 'test-event', 'channel': 'channel-1', 'data': 'test-data'});
+        final message = jsonEncode({
+          'event': 'test-event',
+          'channel': 'channel-1',
+          'data': 'test-data',
+        });
         streamController.add(message);
 
         // Assert
@@ -208,7 +230,10 @@ void main() {
         });
 
         // Act
-        final message = jsonEncode({'event': 'test-event', 'data': 'test-data'});
+        final message = jsonEncode({
+          'event': 'test-event',
+          'data': 'test-data',
+        });
         streamController.add(message);
 
         // Assert
@@ -281,8 +306,16 @@ void main() {
         channel2.bind('event-2', (event, data) => events2.add(event));
 
         // Act
-        final message1 = jsonEncode({'event': 'event-1', 'channel': 'channel-1', 'data': 'data1'});
-        final message2 = jsonEncode({'event': 'event-2', 'channel': 'channel-2', 'data': 'data2'});
+        final message1 = jsonEncode({
+          'event': 'event-1',
+          'channel': 'channel-1',
+          'data': 'data1',
+        });
+        final message2 = jsonEncode({
+          'event': 'event-2',
+          'channel': 'channel-2',
+          'data': 'data2',
+        });
         streamController.add(message1);
         streamController.add(message2);
 

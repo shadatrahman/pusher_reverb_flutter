@@ -29,7 +29,13 @@ class ClusterConfig {
   final Map<String, String>? additionalHeaders;
 
   /// Creates a new ClusterConfig.
-  const ClusterConfig({required this.host, required this.port, required this.useTLS, this.region, this.additionalHeaders});
+  const ClusterConfig({
+    required this.host,
+    required this.port,
+    required this.useTLS,
+    this.region,
+    this.additionalHeaders,
+  });
 
   @override
   String toString() {
@@ -39,7 +45,11 @@ class ClusterConfig {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ClusterConfig && other.host == host && other.port == port && other.useTLS == useTLS && other.region == region;
+    return other is ClusterConfig &&
+        other.host == host &&
+        other.port == port &&
+        other.useTLS == useTLS &&
+        other.region == region;
   }
 
   @override
@@ -66,7 +76,12 @@ class ResolvedConfig {
   final Map<String, String> additionalHeaders;
 
   /// Creates a new ResolvedConfig.
-  const ResolvedConfig({required this.host, required this.port, required this.useTLS, required this.additionalHeaders});
+  const ResolvedConfig({
+    required this.host,
+    required this.port,
+    required this.useTLS,
+    required this.additionalHeaders,
+  });
 
   @override
   String toString() {

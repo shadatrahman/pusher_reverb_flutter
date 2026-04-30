@@ -80,7 +80,9 @@ class ChannelException extends PusherException {
 
   @override
   String toString() {
-    final channelInfo = channelName != null ? ' for channel "$channelName"' : '';
+    final channelInfo = channelName != null
+        ? ' for channel "$channelName"'
+        : '';
     return 'ChannelException: $message$channelInfo';
   }
 }
@@ -111,7 +113,8 @@ class InvalidChannelNameException extends PusherException {
   const InvalidChannelNameException(super.message, this.channelName);
 
   @override
-  String toString() => 'InvalidChannelNameException: $message (Channel: "$channelName")';
+  String toString() =>
+      'InvalidChannelNameException: $message (Channel: "$channelName")';
 }
 
 /// Exception thrown when authentication fails for private/presence/encrypted channels.
@@ -142,7 +145,11 @@ class AuthenticationException extends PusherException {
   final String channelName;
 
   /// Creates a new AuthenticationException.
-  const AuthenticationException({required String message, this.statusCode, required this.channelName}) : super(message);
+  const AuthenticationException({
+    required String message,
+    this.statusCode,
+    required this.channelName,
+  }) : super(message);
 
   @override
   String toString() {

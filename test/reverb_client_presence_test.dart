@@ -17,7 +17,13 @@ void main() {
         'user_info': {'name': 'John Doe'},
       };
 
-      client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer, authEndpoint: 'https://example.com/auth');
+      client = ReverbClient.forTesting(
+        host: 'localhost',
+        port: 8080,
+        appKey: 'test-key',
+        authorizer: mockAuthorizer,
+        authEndpoint: 'https://example.com/auth',
+      );
     });
 
     tearDown(() async {
@@ -28,32 +34,69 @@ void main() {
 
     group('subscribeToPresenceChannel', () {
       test('should throw error if authorizer is not configured', () {
-        final clientWithoutAuthorizer = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authEndpoint: 'https://example.com/auth');
+        final clientWithoutAuthorizer = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          authEndpoint: 'https://example.com/auth',
+        );
 
         expect(
-          () => clientWithoutAuthorizer.subscribeToPresenceChannel('presence-room'),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
+          () => clientWithoutAuthorizer.subscribeToPresenceChannel(
+            'presence-room',
+          ),
+          throwsA(
+            isA<ChannelException>().having(
+              (e) => e.message,
+              'message',
+              contains('Authorizer and authEndpoint must be configured'),
+            ),
+          ),
         );
       });
 
       test('should throw error if authEndpoint is not configured', () {
-        final clientWithoutEndpoint = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-key', authorizer: mockAuthorizer);
+        final clientWithoutEndpoint = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-key',
+          authorizer: mockAuthorizer,
+        );
 
         expect(
-          () => clientWithoutEndpoint.subscribeToPresenceChannel('presence-room'),
-          throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('Authorizer and authEndpoint must be configured'))),
+          () =>
+              clientWithoutEndpoint.subscribeToPresenceChannel('presence-room'),
+          throwsA(
+            isA<ChannelException>().having(
+              (e) => e.message,
+              'message',
+              contains('Authorizer and authEndpoint must be configured'),
+            ),
+          ),
         );
       });
 
       test('should throw error if socketId is not available', () {
-        expect(() => client.subscribeToPresenceChannel('presence-room'), throwsA(isA<ConnectionException>().having((e) => e.message, 'message', contains('not connected to server'))));
+        expect(
+          () => client.subscribeToPresenceChannel('presence-room'),
+          throwsA(
+            isA<ConnectionException>().having(
+              (e) => e.message,
+              'message',
+              contains('not connected to server'),
+            ),
+          ),
+        );
       });
 
       test('should throw error for invalid presence channel name', () {
         // Set socket ID to bypass the socket ID check
         client.socketId = 'test-socket-id';
 
-        expect(() => client.subscribeToPresenceChannel('private-channel'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => client.subscribeToPresenceChannel('private-channel'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should create PresenceChannel with valid name', () {
@@ -71,7 +114,10 @@ void main() {
         // Set socket ID to bypass the socket ID check
         client.socketId = 'test-socket-id';
 
-        final channel = client.subscribeToPresenceChannel('presence-room', channelData: testChannelData);
+        final channel = client.subscribeToPresenceChannel(
+          'presence-room',
+          channelData: testChannelData,
+        );
 
         expect(channel, isA<PresenceChannel>());
         expect(channel.channelData, testChannelData);
@@ -87,27 +133,42 @@ void main() {
         expect(channel.channelData, isNull);
       });
 
-      test('should return existing PresenceChannel on duplicate subscription', () {
-        // Set socket ID to bypass the socket ID check
-        client.socketId = 'test-socket-id';
+      test(
+        'should return existing PresenceChannel on duplicate subscription',
+        () {
+          // Set socket ID to bypass the socket ID check
+          client.socketId = 'test-socket-id';
 
-        final channel1 = client.subscribeToPresenceChannel('presence-room');
-        final channel2 = client.subscribeToPresenceChannel('presence-room');
+          final channel1 = client.subscribeToPresenceChannel('presence-room');
+          final channel2 = client.subscribeToPresenceChannel('presence-room');
 
-        expect(identical(channel1, channel2), isTrue);
-        expect(client.subscribedChannels.length, 1);
-      });
+          expect(identical(channel1, channel2), isTrue);
+          expect(client.subscribedChannels.length, 1);
+        },
+      );
 
-      test('should throw error when trying to convert existing channel to presence', () {
-        // Set socket ID to bypass the socket ID check
-        client.socketId = 'test-socket-id';
+      test(
+        'should throw error when trying to convert existing channel to presence',
+        () {
+          // Set socket ID to bypass the socket ID check
+          client.socketId = 'test-socket-id';
 
-        // Create a public channel first
-        client.subscribeToChannel('presence-room');
+          // Create a public channel first
+          client.subscribeToChannel('presence-room');
 
-        // Try to subscribe to same name as presence channel
-        expect(() => client.subscribeToPresenceChannel('presence-room'), throwsA(isA<ChannelException>().having((e) => e.message, 'message', contains('already exists as a different channel type'))));
-      });
+          // Try to subscribe to same name as presence channel
+          expect(
+            () => client.subscribeToPresenceChannel('presence-room'),
+            throwsA(
+              isA<ChannelException>().having(
+                (e) => e.message,
+                'message',
+                contains('already exists as a different channel type'),
+              ),
+            ),
+          );
+        },
+      );
     });
 
     group('mixed channel types', () {
@@ -117,8 +178,12 @@ void main() {
 
         // Subscribe to different channel types
         final publicChannel = client.subscribeToChannel('public-channel');
-        final privateChannel = client.subscribeToPrivateChannel('private-channel');
-        final presenceChannel = client.subscribeToPresenceChannel('presence-room');
+        final privateChannel = client.subscribeToPrivateChannel(
+          'private-channel',
+        );
+        final presenceChannel = client.subscribeToPresenceChannel(
+          'presence-room',
+        );
 
         expect(publicChannel, isA<Channel>());
         expect(publicChannel, isNot(isA<PrivateChannel>()));
@@ -160,8 +225,12 @@ void main() {
 
         // Create channels
         final publicChannel = client.subscribeToChannel('public-channel');
-        final privateChannel = client.subscribeToPrivateChannel('private-channel');
-        final presenceChannel = client.subscribeToPresenceChannel('presence-room');
+        final privateChannel = client.subscribeToPrivateChannel(
+          'private-channel',
+        );
+        final presenceChannel = client.subscribeToPresenceChannel(
+          'presence-room',
+        );
 
         // Test getChannel returns correct types
         expect(client.getChannel('public-channel'), publicChannel);
@@ -199,7 +268,10 @@ void main() {
         // Set socket ID to bypass the socket ID check
         client.socketId = 'test-socket-id';
 
-        final channel = client.subscribeToPresenceChannel('presence-room', channelData: testChannelData);
+        final channel = client.subscribeToPresenceChannel(
+          'presence-room',
+          channelData: testChannelData,
+        );
 
         // Verify channel was created with channel data
         expect(channel.channelData, testChannelData);
@@ -290,16 +362,28 @@ void main() {
         client.socketId = 'test-socket-id';
 
         // Test various invalid names
-        expect(() => client.subscribeToPresenceChannel(''), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => client.subscribeToPresenceChannel('public-room'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => client.subscribeToPresenceChannel('private-room'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => client.subscribeToPresenceChannel(''),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => client.subscribeToPresenceChannel('public-room'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => client.subscribeToPresenceChannel('private-room'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should validate presence channel name starts with presence-', () {
         // Set socket ID to bypass the socket ID check
         client.socketId = 'test-socket-id';
 
-        expect(() => client.subscribeToPresenceChannel('room'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => client.subscribeToPresenceChannel('room'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
     });
 

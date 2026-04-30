@@ -12,7 +12,9 @@ class PrivateChannelScreen extends StatefulWidget {
 
 class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
   final _reverbService = ReverbService.instance;
-  final _channelNameController = TextEditingController(text: 'private-user-123');
+  final _channelNameController = TextEditingController(
+    text: 'private-user-123',
+  );
 
   PrivateChannel? _channel;
   final List<ChannelEvent> _events = [];
@@ -127,7 +129,14 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
       appBar: AppBar(
         title: const Text('Private Channels'),
         elevation: 0,
-        actions: [if (_isSubscribed) IconButton(icon: const Icon(Icons.clear_all), tooltip: 'Clear Events', onPressed: _clearEvents)],
+        actions: [
+          if (_isSubscribed)
+            IconButton(
+              icon: const Icon(Icons.clear_all),
+              tooltip: 'Clear Events',
+              onPressed: _clearEvents,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -143,16 +152,35 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.lock, color: Colors.white, size: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Private Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('Secure channels requiring authentication', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                          Text(
+                            'Private Channels',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Secure channels requiring authentication',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -166,7 +194,9 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Card(
-              color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
+              color: theme.colorScheme.secondaryContainer.withValues(
+                alpha: 0.3,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -174,9 +204,18 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: theme.colorScheme.secondary, size: 20),
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.secondary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                        Text('About Private Channels', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          'About Private Channels',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -200,7 +239,12 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
               children: [
                 TextField(
                   controller: _channelNameController,
-                  decoration: const InputDecoration(labelText: 'Private Channel Name', hintText: 'private-user-123', prefixIcon: Icon(Icons.tag), helperText: 'Must start with "private-"'),
+                  decoration: const InputDecoration(
+                    labelText: 'Private Channel Name',
+                    hintText: 'private-user-123',
+                    prefixIcon: Icon(Icons.tag),
+                    helperText: 'Must start with "private-"',
+                  ),
                   enabled: !_isSubscribed,
                 ),
                 const SizedBox(height: 16),
@@ -212,7 +256,13 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                         : _isSubscribed
                         ? _unsubscribe
                         : _subscribe,
-                    icon: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(_isSubscribed ? Icons.cancel : Icons.play_arrow),
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(_isSubscribed ? Icons.cancel : Icons.play_arrow),
                     label: Text(
                       _isLoading
                           ? 'Authenticating...'
@@ -242,7 +292,12 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                       Icon(Icons.error_outline, color: theme.colorScheme.error),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(_error!, style: TextStyle(color: theme.colorScheme.onErrorContainer)),
+                        child: Text(
+                          _error!,
+                          style: TextStyle(
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -258,14 +313,29 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                 children: [
                   const Icon(Icons.stream, size: 20),
                   const SizedBox(width: 8),
-                  Text('Private Events', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Private Events',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Text(
                       '${_events.length}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -280,11 +350,31 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 64,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
                               const SizedBox(height: 16),
-                              Text('Waiting for private events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+                              Text(
+                                'Waiting for private events...',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                ),
+                              ),
                               const SizedBox(height: 8),
-                              Text('Private events will appear here when received', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                              Text(
+                                'Private events will appear here when received',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         )
@@ -299,11 +389,27 @@ class _PrivateChannelScreenState extends State<PrivateChannelScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.lock_outline, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                        Icon(
+                          Icons.lock_outline,
+                          size: 64,
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        Text('Subscribe to start receiving events', style: theme.textTheme.titleMedium),
+                        Text(
+                          'Subscribe to start receiving events',
+                          style: theme.textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 8),
-                        Text('Ensure authentication is configured', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                        Text(
+                          'Ensure authentication is configured',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

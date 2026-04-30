@@ -8,7 +8,10 @@ void main() {
 
     setUp(() {
       sentMessages = [];
-      channel = Channel(name: 'test-channel', sendMessage: (message) => sentMessages.add(message));
+      channel = Channel(
+        name: 'test-channel',
+        sendMessage: (message) => sentMessages.add(message),
+      );
     });
 
     group('Constructor', () {
@@ -18,23 +21,44 @@ void main() {
       });
 
       test('throws error for empty channel name', () {
-        expect(() => Channel(name: '', sendMessage: (message) {}), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => Channel(name: '', sendMessage: (message) {}),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('throws error for channel name exceeding 200 characters', () {
         final longName = 'a' * 201;
-        expect(() => Channel(name: longName, sendMessage: (message) {}), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => Channel(name: longName, sendMessage: (message) {}),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('throws error for channel name with invalid characters', () {
-        expect(() => Channel(name: 'test#channel', sendMessage: (message) {}), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => Channel(name: 'test#channel', sendMessage: (message) {}),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('accepts valid channel names with special characters', () {
-        final validNames = ['test-channel', 'test_channel', 'test=channel', 'test@channel', 'test,channel', 'test.channel', 'test;channel', 'test123'];
+        final validNames = [
+          'test-channel',
+          'test_channel',
+          'test=channel',
+          'test@channel',
+          'test,channel',
+          'test.channel',
+          'test;channel',
+          'test123',
+        ];
 
         for (final name in validNames) {
-          expect(() => Channel(name: name, sendMessage: (message) {}), returnsNormally);
+          expect(
+            () => Channel(name: name, sendMessage: (message) {}),
+            returnsNormally,
+          );
         }
       });
     });
@@ -227,7 +251,10 @@ void main() {
       });
 
       test('throws error for empty event name when binding', () {
-        expect(() => channel.bind('', (event, data) {}), throwsA(isA<ArgumentError>()));
+        expect(
+          () => channel.bind('', (event, data) {}),
+          throwsA(isA<ArgumentError>()),
+        );
       });
 
       test('unbinds specific event listener', () {
@@ -247,32 +274,38 @@ void main() {
         expect(receivedEvent, isNull);
       });
 
-      test('unbinds all listeners for event when no specific listener provided', () {
-        // Arrange
-        String? receivedEvent1;
-        String? receivedEvent2;
-        void listener1(String event, dynamic data) {
-          receivedEvent1 = event;
-        }
+      test(
+        'unbinds all listeners for event when no specific listener provided',
+        () {
+          // Arrange
+          String? receivedEvent1;
+          String? receivedEvent2;
+          void listener1(String event, dynamic data) {
+            receivedEvent1 = event;
+          }
 
-        void listener2(String event, dynamic data) {
-          receivedEvent2 = event;
-        }
+          void listener2(String event, dynamic data) {
+            receivedEvent2 = event;
+          }
 
-        channel.bind('test-event', listener1);
-        channel.bind('test-event', listener2);
+          channel.bind('test-event', listener1);
+          channel.bind('test-event', listener2);
 
-        // Act
-        channel.unbind('test-event');
-        channel.handleEvent('test-event', 'test-data');
+          // Act
+          channel.unbind('test-event');
+          channel.handleEvent('test-event', 'test-data');
 
-        // Assert
-        expect(receivedEvent1, isNull);
-        expect(receivedEvent2, isNull);
-      });
+          // Assert
+          expect(receivedEvent1, isNull);
+          expect(receivedEvent2, isNull);
+        },
+      );
 
       test('throws error for empty event name when unbinding', () {
-        expect(() => channel.unbind('', (event, data) {}), throwsA(isA<ArgumentError>()));
+        expect(
+          () => channel.unbind('', (event, data) {}),
+          throwsA(isA<ArgumentError>()),
+        );
       });
 
       test('handles multiple listeners for same event', () {
@@ -402,7 +435,10 @@ void main() {
 
           // Act: Simulate concurrent removal by calling unbind twice
           channel.unbind('test-event', listener);
-          channel.unbind('test-event', listener); // Should not cause runtime error
+          channel.unbind(
+            'test-event',
+            listener,
+          ); // Should not cause runtime error
 
           // Assert: Listener should be removed without errors
           channel.handleEvent('test-event', 'test-data');
@@ -420,7 +456,9 @@ void main() {
 
           // Act: Simulate concurrent removal by calling removeStateListener twice
           channel.removeStateListener(listener);
-          channel.removeStateListener(listener); // Should not cause runtime error
+          channel.removeStateListener(
+            listener,
+          ); // Should not cause runtime error
 
           // Assert: Listener should be removed without errors
           channel.subscribe();
@@ -599,7 +637,11 @@ void main() {
 
       test('ChannelEvent has correct toString', () {
         // Arrange
-        final event = ChannelEvent(channelName: 'test-channel', eventName: 'test-event', data: {'key': 'value'});
+        final event = ChannelEvent(
+          channelName: 'test-channel',
+          eventName: 'test-event',
+          data: {'key': 'value'},
+        );
 
         // Act
         final result = event.toString();
@@ -612,9 +654,21 @@ void main() {
 
       test('ChannelEvent equality works correctly', () {
         // Arrange
-        final event1 = ChannelEvent(channelName: 'channel', eventName: 'event', data: 'data');
-        final event2 = ChannelEvent(channelName: 'channel', eventName: 'event', data: 'data');
-        final event3 = ChannelEvent(channelName: 'channel', eventName: 'different', data: 'data');
+        final event1 = ChannelEvent(
+          channelName: 'channel',
+          eventName: 'event',
+          data: 'data',
+        );
+        final event2 = ChannelEvent(
+          channelName: 'channel',
+          eventName: 'event',
+          data: 'data',
+        );
+        final event3 = ChannelEvent(
+          channelName: 'channel',
+          eventName: 'different',
+          data: 'data',
+        );
 
         // Assert
         expect(event1 == event2, isTrue);

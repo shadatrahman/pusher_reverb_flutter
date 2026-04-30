@@ -17,7 +17,10 @@ void main() {
       sentMessages = [];
       testChannelData = {
         'user_id': '123',
-        'user_info': {'name': 'John Doe', 'avatar': 'https://example.com/avatar.jpg'},
+        'user_info': {
+          'name': 'John Doe',
+          'avatar': 'https://example.com/avatar.jpg',
+        },
       };
 
       mockAuthorizer = (String channelName, String socketId) async {
@@ -49,21 +52,39 @@ void main() {
 
       test('should throw error for invalid presence channel name', () {
         expect(
-          () => PresenceChannel(name: 'private-channel', authorizer: mockAuthorizer, authEndpoint: testAuthEndpoint, socketId: testSocketId, sendMessage: (String message) {}),
+          () => PresenceChannel(
+            name: 'private-channel',
+            authorizer: mockAuthorizer,
+            authEndpoint: testAuthEndpoint,
+            socketId: testSocketId,
+            sendMessage: (String message) {},
+          ),
           throwsA(isA<InvalidChannelNameException>()),
         );
       });
 
       test('should throw error for empty channel name', () {
         expect(
-          () => PresenceChannel(name: '', authorizer: mockAuthorizer, authEndpoint: testAuthEndpoint, socketId: testSocketId, sendMessage: (String message) {}),
+          () => PresenceChannel(
+            name: '',
+            authorizer: mockAuthorizer,
+            authEndpoint: testAuthEndpoint,
+            socketId: testSocketId,
+            sendMessage: (String message) {},
+          ),
           throwsA(isA<InvalidChannelNameException>()),
         );
       });
 
       test('should throw error for channel name without presence- prefix', () {
         expect(
-          () => PresenceChannel(name: 'public-channel', authorizer: mockAuthorizer, authEndpoint: testAuthEndpoint, socketId: testSocketId, sendMessage: (String message) {}),
+          () => PresenceChannel(
+            name: 'public-channel',
+            authorizer: mockAuthorizer,
+            authEndpoint: testAuthEndpoint,
+            socketId: testSocketId,
+            sendMessage: (String message) {},
+          ),
           throwsA(isA<InvalidChannelNameException>()),
         );
       });
@@ -81,30 +102,63 @@ void main() {
 
     group('validatePresenceChannelName', () {
       test('should accept valid presence channel names', () {
-        expect(() => validatePresenceChannelName('presence-room'), returnsNormally);
-        expect(() => validatePresenceChannelName('presence-chat-123'), returnsNormally);
-        expect(() => validatePresenceChannelName('presence-user_activity'), returnsNormally);
+        expect(
+          () => validatePresenceChannelName('presence-room'),
+          returnsNormally,
+        );
+        expect(
+          () => validatePresenceChannelName('presence-chat-123'),
+          returnsNormally,
+        );
+        expect(
+          () => validatePresenceChannelName('presence-user_activity'),
+          returnsNormally,
+        );
       });
 
       test('should reject names without presence- prefix', () {
-        expect(() => validatePresenceChannelName('private-room'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validatePresenceChannelName('public-room'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validatePresenceChannelName('room'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validatePresenceChannelName('private-room'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validatePresenceChannelName('public-room'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validatePresenceChannelName('room'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should reject empty channel name', () {
-        expect(() => validatePresenceChannelName(''), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validatePresenceChannelName(''),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should reject channel names exceeding 200 characters', () {
         final longName = 'presence-${'a' * 200}';
-        expect(() => validatePresenceChannelName(longName), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validatePresenceChannelName(longName),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should reject channel names with invalid characters', () {
-        expect(() => validatePresenceChannelName('presence-room#123'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validatePresenceChannelName('presence-room!'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validatePresenceChannelName('presence-room space'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validatePresenceChannelName('presence-room#123'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validatePresenceChannelName('presence-room!'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validatePresenceChannelName('presence-room space'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
     });
 
@@ -417,17 +471,20 @@ void main() {
         expect(channel.members.first.id, '456');
       });
 
-      test('should handle member_removed for non-existent member gracefully', () {
-        // Arrange
-        final channel = createPresenceChannel();
-        expect(channel.memberCount, 0);
+      test(
+        'should handle member_removed for non-existent member gracefully',
+        () {
+          // Arrange
+          final channel = createPresenceChannel();
+          expect(channel.memberCount, 0);
 
-        // Act - remove member that doesn't exist
-        channel.handleEvent('pusher:member_removed', {'user_id': '999'});
+          // Act - remove member that doesn't exist
+          channel.handleEvent('pusher:member_removed', {'user_id': '999'});
 
-        // Assert - should not cause errors
-        expect(channel.memberCount, 0);
-      });
+          // Assert - should not cause errors
+          expect(channel.memberCount, 0);
+        },
+      );
 
       test('should handle member_removed with null user_id gracefully', () {
         // Arrange
@@ -587,7 +644,10 @@ void main() {
         expect(channel.members.any((m) => m.id == '200'), isTrue);
         expect(channel.members.any((m) => m.id == '300'), isTrue);
         expect(channel.members.any((m) => m.id == '400'), isTrue);
-        expect(allEvents.length, 3); // member_added, member_removed, member_added
+        expect(
+          allEvents.length,
+          3,
+        ); // member_added, member_removed, member_added
       });
     });
   });
@@ -603,7 +663,10 @@ void main() {
     test('should create member from JSON', () {
       final json = {
         'id': '123',
-        'info': {'name': 'John Doe', 'avatar': 'https://example.com/avatar.jpg'},
+        'info': {
+          'name': 'John Doe',
+          'avatar': 'https://example.com/avatar.jpg',
+        },
       };
 
       final member = PresenceMember.fromJson(json);

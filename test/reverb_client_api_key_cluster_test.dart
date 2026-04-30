@@ -15,7 +15,12 @@ void main() {
       test('should store API key when provided', () {
         const apiKey = 'test-api-key';
 
-        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', apiKey: apiKey);
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          apiKey: apiKey,
+        );
 
         expect(client.apiKey, equals(apiKey));
       });
@@ -61,7 +66,12 @@ void main() {
       });
 
       test('should resolve eu-west-1 cluster configuration', () {
-        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', cluster: 'eu-west-1');
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          cluster: 'eu-west-1',
+        );
 
         expect(client.effectiveHost, equals('reverb-eu-west-1.pusher.com'));
         expect(client.effectivePort, equals(443));
@@ -69,7 +79,12 @@ void main() {
       });
 
       test('should resolve local cluster configuration', () {
-        final client = ReverbClient.forTesting(host: 'remote-host', port: 9000, appKey: 'test-app-key', cluster: 'local');
+        final client = ReverbClient.forTesting(
+          host: 'remote-host',
+          port: 9000,
+          appKey: 'test-app-key',
+          cluster: 'local',
+        );
 
         expect(client.effectiveHost, equals('localhost'));
         expect(client.effectivePort, equals(8080));
@@ -77,7 +92,15 @@ void main() {
       });
 
       test('should throw exception for invalid cluster', () {
-        expect(() => ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', cluster: 'invalid-cluster'), throwsA(isA<ConnectionException>()));
+        expect(
+          () => ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-app-key',
+            cluster: 'invalid-cluster',
+          ),
+          throwsA(isA<ConnectionException>()),
+        );
       });
 
       test('should return available clusters', () {
@@ -131,7 +154,13 @@ void main() {
       });
 
       test('should work with singleton pattern', () {
-        final client1 = ReverbClient.instance(host: 'localhost', port: 8080, appKey: 'test-app-key', apiKey: 'test-api-key', cluster: 'us-east-1');
+        final client1 = ReverbClient.instance(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          apiKey: 'test-api-key',
+          cluster: 'us-east-1',
+        );
 
         final client2 = ReverbClient.instance();
 
@@ -142,7 +171,12 @@ void main() {
 
     group('Configuration Access', () {
       test('should provide access to resolved configuration', () {
-        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', cluster: 'us-east-1');
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          cluster: 'us-east-1',
+        );
 
         final resolvedConfig = client.resolvedConfig;
         expect(resolvedConfig.host, equals('reverb-us-east-1.pusher.com'));
@@ -153,7 +187,12 @@ void main() {
 
     group('Edge Cases', () {
       test('should handle null API key gracefully', () {
-        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', apiKey: null);
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          apiKey: null,
+        );
 
         expect(client.apiKey, isNull);
       });
@@ -173,7 +212,12 @@ void main() {
       test('should handle special characters in API key', () {
         const apiKey = 'test-api-key-with-special-chars!@#\$%^&*()';
 
-        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', apiKey: apiKey);
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          apiKey: apiKey,
+        );
 
         expect(client.apiKey, equals(apiKey));
       });
@@ -181,7 +225,12 @@ void main() {
       test('should handle very long API key', () {
         final apiKey = 'a' * 1000; // Very long API key
 
-        final client = ReverbClient.forTesting(host: 'localhost', port: 8080, appKey: 'test-app-key', apiKey: apiKey);
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app-key',
+          apiKey: apiKey,
+        );
 
         expect(client.apiKey, equals(apiKey));
       });

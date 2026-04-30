@@ -23,11 +23,17 @@ void main() {
       sentMessages = [];
 
       mockAuthorizer = (String channelName, String socketId) async {
-        return {'Authorization': 'Bearer test-token', 'X-Custom-Header': 'test-value'};
+        return {
+          'Authorization': 'Bearer test-token',
+          'X-Custom-Header': 'test-value',
+        };
       };
     });
 
-    EncryptedChannel createEncryptedChannel({String? channelName, String? encryptionKey}) {
+    EncryptedChannel createEncryptedChannel({
+      String? channelName,
+      String? encryptionKey,
+    }) {
       return EncryptedChannel(
         name: channelName ?? testChannelName,
         authorizer: mockAuthorizer,
@@ -43,21 +49,42 @@ void main() {
     group('validateEncryptedChannelName', () {
       test('should accept valid encrypted channel names', () {
         // Arrange & Act & Assert
-        expect(() => validateEncryptedChannelName('private-encrypted-messages'), returnsNormally);
-        expect(() => validateEncryptedChannelName('private-encrypted-chat'), returnsNormally);
-        expect(() => validateEncryptedChannelName('private-encrypted-test_channel'), returnsNormally);
+        expect(
+          () => validateEncryptedChannelName('private-encrypted-messages'),
+          returnsNormally,
+        );
+        expect(
+          () => validateEncryptedChannelName('private-encrypted-chat'),
+          returnsNormally,
+        );
+        expect(
+          () => validateEncryptedChannelName('private-encrypted-test_channel'),
+          returnsNormally,
+        );
       });
 
       test('should reject channel names without private-encrypted- prefix', () {
         // Arrange & Act & Assert
-        expect(() => validateEncryptedChannelName('private-messages'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validateEncryptedChannelName('public-encrypted-messages'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validateEncryptedChannelName('messages'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validateEncryptedChannelName('private-messages'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validateEncryptedChannelName('public-encrypted-messages'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validateEncryptedChannelName('messages'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should reject empty channel names', () {
         // Arrange & Act & Assert
-        expect(() => validateEncryptedChannelName(''), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validateEncryptedChannelName(''),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should reject channel names exceeding 200 characters', () {
@@ -65,13 +92,22 @@ void main() {
         final longName = 'private-encrypted-${'x' * 200}';
 
         // Act & Assert
-        expect(() => validateEncryptedChannelName(longName), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validateEncryptedChannelName(longName),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should reject channel names with invalid characters', () {
         // Arrange & Act & Assert
-        expect(() => validateEncryptedChannelName('private-encrypted-test#channel'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => validateEncryptedChannelName('private-encrypted-test channel'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => validateEncryptedChannelName('private-encrypted-test#channel'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => validateEncryptedChannelName('private-encrypted-test channel'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
     });
 
@@ -88,18 +124,30 @@ void main() {
 
       test('should throw error for invalid encrypted channel name', () {
         // Arrange & Act & Assert
-        expect(() => createEncryptedChannel(channelName: 'private-messages'), throwsA(isA<InvalidChannelNameException>()));
-        expect(() => createEncryptedChannel(channelName: 'public-channel'), throwsA(isA<InvalidChannelNameException>()));
+        expect(
+          () => createEncryptedChannel(channelName: 'private-messages'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
+        expect(
+          () => createEncryptedChannel(channelName: 'public-channel'),
+          throwsA(isA<InvalidChannelNameException>()),
+        );
       });
 
       test('should throw error for empty encryption key', () {
         // Arrange & Act & Assert
-        expect(() => createEncryptedChannel(encryptionKey: ''), throwsA(isA<ArgumentError>()));
+        expect(
+          () => createEncryptedChannel(encryptionKey: ''),
+          throwsA(isA<ArgumentError>()),
+        );
       });
 
       test('should throw error for invalid base64 encryption key', () {
         // Arrange & Act & Assert
-        expect(() => createEncryptedChannel(encryptionKey: 'not-valid-base64!!!'), throwsA(isA<ArgumentError>()));
+        expect(
+          () => createEncryptedChannel(encryptionKey: 'not-valid-base64!!!'),
+          throwsA(isA<ArgumentError>()),
+        );
       });
 
       test('should throw error for encryption key with wrong length', () {
@@ -108,7 +156,10 @@ void main() {
         final shortKey = base64.encode(List<int>.generate(16, (i) => i));
 
         // Act & Assert
-        expect(() => createEncryptedChannel(encryptionKey: shortKey), throwsA(isA<ArgumentError>()));
+        expect(
+          () => createEncryptedChannel(encryptionKey: shortKey),
+          throwsA(isA<ArgumentError>()),
+        );
       });
 
       test('should store authorizer and auth endpoint', () {
@@ -134,13 +185,20 @@ void main() {
         // Encrypt the data using the same key
         // Note: This requires the encrypt package
         final key = base64.decode(testEncryptionKey);
-        final iv = Uint8List.fromList(List<int>.generate(16, (i) => i)); // Simple IV for testing
+        final iv = Uint8List.fromList(
+          List<int>.generate(16, (i) => i),
+        ); // Simple IV for testing
 
         // Use the encrypt package to encrypt
-        final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc));
+        final encrypter = encrypt.Encrypter(
+          encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc),
+        );
         final encrypted = encrypter.encrypt(originalJson, iv: encrypt.IV(iv));
 
-        final encryptedEventData = {'ciphertext': encrypted.base64, 'nonce': base64.encode(iv)};
+        final encryptedEventData = {
+          'ciphertext': encrypted.base64,
+          'nonce': base64.encode(iv),
+        };
 
         // Act
         final eventFuture = channel.stream.first;
@@ -152,49 +210,57 @@ void main() {
         expect(receivedEvent.data, originalData);
       });
 
-      test('should handle decryption error for malformed data structure', () async {
-        // Arrange
-        final channel = createEncryptedChannel();
+      test(
+        'should handle decryption error for malformed data structure',
+        () async {
+          // Arrange
+          final channel = createEncryptedChannel();
 
-        // Act & Assert - Use expectLater for stream events
-        final eventFuture = expectLater(
-          channel.stream,
-          emits(
-            predicate<ChannelEvent>((event) {
-              return event.eventName == 'pusher:decryption_error' && event.data['error'] == 'decryption_failed';
-            }),
-          ),
-        );
+          // Act & Assert - Use expectLater for stream events
+          final eventFuture = expectLater(
+            channel.stream,
+            emits(
+              predicate<ChannelEvent>((event) {
+                return event.eventName == 'pusher:decryption_error' &&
+                    event.data['error'] == 'decryption_failed';
+              }),
+            ),
+          );
 
-        // Pass invalid data structure
-        channel.handleEvent('message', 'not-a-json-object');
+          // Pass invalid data structure
+          channel.handleEvent('message', 'not-a-json-object');
 
-        await eventFuture;
-      });
+          await eventFuture;
+        },
+      );
 
-      test('should handle decryption error for missing ciphertext field', () async {
-        // Arrange
-        final channel = createEncryptedChannel();
+      test(
+        'should handle decryption error for missing ciphertext field',
+        () async {
+          // Arrange
+          final channel = createEncryptedChannel();
 
-        final malformedData = {
-          'nonce': base64.encode(List<int>.generate(16, (i) => i)),
-          // Missing 'ciphertext' field
-        };
+          final malformedData = {
+            'nonce': base64.encode(List<int>.generate(16, (i) => i)),
+            // Missing 'ciphertext' field
+          };
 
-        // Act & Assert - Use expectLater for stream events
-        final eventFuture = expectLater(
-          channel.stream,
-          emits(
-            predicate<ChannelEvent>((event) {
-              return event.eventName == 'pusher:decryption_error' && event.data['error'] == 'decryption_failed';
-            }),
-          ),
-        );
+          // Act & Assert - Use expectLater for stream events
+          final eventFuture = expectLater(
+            channel.stream,
+            emits(
+              predicate<ChannelEvent>((event) {
+                return event.eventName == 'pusher:decryption_error' &&
+                    event.data['error'] == 'decryption_failed';
+              }),
+            ),
+          );
 
-        channel.handleEvent('message', malformedData);
+          channel.handleEvent('message', malformedData);
 
-        await eventFuture;
-      });
+          await eventFuture;
+        },
+      );
 
       test('should handle decryption error for missing nonce field', () async {
         // Arrange
@@ -210,7 +276,8 @@ void main() {
           channel.stream,
           emits(
             predicate<ChannelEvent>((event) {
-              return event.eventName == 'pusher:decryption_error' && event.data['error'] == 'decryption_failed';
+              return event.eventName == 'pusher:decryption_error' &&
+                  event.data['error'] == 'decryption_failed';
             }),
           ),
         );
@@ -220,26 +287,33 @@ void main() {
         await eventFuture;
       });
 
-      test('should handle decryption error for invalid encrypted data', () async {
-        // Arrange
-        final channel = createEncryptedChannel();
+      test(
+        'should handle decryption error for invalid encrypted data',
+        () async {
+          // Arrange
+          final channel = createEncryptedChannel();
 
-        final invalidData = {'ciphertext': 'invalid-base64-encrypted-data', 'nonce': base64.encode(List<int>.generate(16, (i) => i))};
+          final invalidData = {
+            'ciphertext': 'invalid-base64-encrypted-data',
+            'nonce': base64.encode(List<int>.generate(16, (i) => i)),
+          };
 
-        // Act & Assert - Use expectLater for stream events
-        final eventFuture = expectLater(
-          channel.stream,
-          emits(
-            predicate<ChannelEvent>((event) {
-              return event.eventName == 'pusher:decryption_error' && event.data['error'] == 'decryption_failed';
-            }),
-          ),
-        );
+          // Act & Assert - Use expectLater for stream events
+          final eventFuture = expectLater(
+            channel.stream,
+            emits(
+              predicate<ChannelEvent>((event) {
+                return event.eventName == 'pusher:decryption_error' &&
+                    event.data['error'] == 'decryption_failed';
+              }),
+            ),
+          );
 
-        channel.handleEvent('message', invalidData);
+          channel.handleEvent('message', invalidData);
 
-        await eventFuture;
-      });
+          await eventFuture;
+        },
+      );
 
       test('should forward decrypted events to stream listeners', () async {
         // Arrange
@@ -252,10 +326,15 @@ void main() {
         // Encrypt the data
         final key = base64.decode(testEncryptionKey);
         final iv = Uint8List.fromList(List<int>.generate(16, (i) => i + 1));
-        final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc));
+        final encrypter = encrypt.Encrypter(
+          encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc),
+        );
         final encrypted = encrypter.encrypt(originalJson, iv: encrypt.IV(iv));
 
-        final encryptedEventData = {'ciphertext': encrypted.base64, 'nonce': base64.encode(iv)};
+        final encryptedEventData = {
+          'ciphertext': encrypted.base64,
+          'nonce': base64.encode(iv),
+        };
 
         // Act
         final eventFuture = channel.on('new-message').first;
@@ -278,10 +357,15 @@ void main() {
         // Encrypt the data
         final key = base64.decode(testEncryptionKey);
         final iv = Uint8List.fromList(List<int>.generate(16, (i) => i + 2));
-        final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc));
+        final encrypter = encrypt.Encrypter(
+          encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc),
+        );
         final encrypted = encrypter.encrypt(originalJson, iv: encrypt.IV(iv));
 
-        final encryptedEventData = {'ciphertext': encrypted.base64, 'nonce': base64.encode(iv)};
+        final encryptedEventData = {
+          'ciphertext': encrypted.base64,
+          'nonce': base64.encode(iv),
+        };
 
         // Track events via callback
         String? receivedEventName;
@@ -315,10 +399,15 @@ void main() {
         final originalJson = jsonEncode(originalData);
         final key = base64.decode(testEncryptionKey);
         final iv = Uint8List.fromList(List<int>.generate(16, (i) => i + 3));
-        final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc));
+        final encrypter = encrypt.Encrypter(
+          encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc),
+        );
         final encrypted = encrypter.encrypt(originalJson, iv: encrypt.IV(iv));
 
-        final encryptedEventData = {'ciphertext': encrypted.base64, 'nonce': base64.encode(iv)};
+        final encryptedEventData = {
+          'ciphertext': encrypted.base64,
+          'nonce': base64.encode(iv),
+        };
 
         // Act
         channel.handleEvent('test-event', encryptedEventData);
@@ -366,10 +455,15 @@ void main() {
         final originalJson = jsonEncode(originalData);
         final key = base64.decode(testEncryptionKey);
         final iv = Uint8List.fromList(List<int>.generate(16, (i) => i + 4));
-        final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc));
+        final encrypter = encrypt.Encrypter(
+          encrypt.AES(encrypt.Key(key), mode: encrypt.AESMode.cbc),
+        );
         final encrypted = encrypter.encrypt(originalJson, iv: encrypt.IV(iv));
 
-        final encryptedEventData = {'ciphertext': encrypted.base64, 'nonce': base64.encode(iv)};
+        final encryptedEventData = {
+          'ciphertext': encrypted.base64,
+          'nonce': base64.encode(iv),
+        };
 
         // Act
         final eventFuture = channel.on('stream-test').first;

@@ -33,7 +33,9 @@ class ConnectionStatusWidget extends StatelessWidget {
             statusIcon = Icons.check_circle;
             statusText = 'Connected';
             final socketId = client.socketId ?? "N/A";
-            final clusterInfo = client.isUsingCluster ? ' (Cluster: ${client.cluster})' : '';
+            final clusterInfo = client.isUsingCluster
+                ? ' (Cluster: ${client.cluster})'
+                : '';
             statusDescription = 'Socket ID: $socketId$clusterInfo';
             break;
           case reverb.ConnectionState.reconnecting:
@@ -66,7 +68,10 @@ class ConnectionStatusWidget extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.2), shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
                       child: Icon(statusIcon, color: statusColor, size: 32),
                     ),
                     const SizedBox(width: 16),
@@ -74,14 +79,31 @@ class ConnectionStatusWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Connection Status', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                          Text(
+                            'Connection Status',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             statusText,
-                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: statusColor),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                            ),
                           ),
                           const SizedBox(height: 2),
-                          Text(statusDescription, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
+                          Text(
+                            statusDescription,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -91,7 +113,13 @@ class ConnectionStatusWidget extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: statusColor,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: statusColor.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 2)],
+                        boxShadow: [
+                          BoxShadow(
+                            color: statusColor.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
                     ),
                   ],

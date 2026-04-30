@@ -45,7 +45,9 @@ class ReverbService {
     _host = prefs.getString('reverb_host') ?? 'localhost';
     _port = prefs.getInt('reverb_port') ?? 8080;
     _appKey = prefs.getString('reverb_app_key') ?? 'your-app-key';
-    _authEndpoint = prefs.getString('reverb_auth_endpoint') ?? 'http://localhost:8000/broadcasting/auth';
+    _authEndpoint =
+        prefs.getString('reverb_auth_endpoint') ??
+        'http://localhost:8000/broadcasting/auth';
     _wsPath = prefs.getString('reverb_ws_path') ?? '/';
     _authToken = prefs.getString('reverb_auth_token') ?? '';
     _useTLS = prefs.getBool('reverb_use_tls') ?? false;
@@ -107,10 +109,16 @@ class ReverbService {
   };
 
   /// Sample authorizer function for private channels
-  Future<Map<String, String>> _authorizer(String channelName, String socketId) async {
+  Future<Map<String, String>> _authorizer(
+    String channelName,
+    String socketId,
+  ) async {
     // In a real app, you would fetch the token from secure storage
     // or your authentication service
-    return {'Authorization': 'Bearer $_authToken', 'Content-Type': 'application/json'};
+    return {
+      'Authorization': 'Bearer $_authToken',
+      'Content-Type': 'application/json',
+    };
   }
 
   /// Initialize the Reverb client

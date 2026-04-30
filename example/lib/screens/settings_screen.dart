@@ -39,7 +39,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _hostController = TextEditingController(text: config['host']);
     _portController = TextEditingController(text: config['port'].toString());
     _appKeyController = TextEditingController(text: config['appKey']);
-    _authEndpointController = TextEditingController(text: config['authEndpoint']);
+    _authEndpointController = TextEditingController(
+      text: config['authEndpoint'],
+    );
     _wsPathController = TextEditingController(text: config['wsPath']);
     _authTokenController = TextEditingController(text: config['authToken']);
 
@@ -68,19 +70,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
         wsPath: _wsPathController.text.trim(),
         authToken: _authTokenController.text.trim(),
         useTLS: _useTLS,
-        apiKey: _apiKeyController.text.trim().isNotEmpty ? _apiKeyController.text.trim() : null, // NEW
-        cluster: _clusterController.text.trim().isNotEmpty ? _clusterController.text.trim() : null, // NEW
+        apiKey: _apiKeyController.text.trim().isNotEmpty
+            ? _apiKeyController.text.trim()
+            : null, // NEW
+        cluster: _clusterController.text.trim().isNotEmpty
+            ? _clusterController.text.trim()
+            : null, // NEW
       );
 
       // Reinitialize the client with new configuration
       await _reverbService.reinitialize();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings saved successfully'), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Settings saved successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save settings: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save settings: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       setState(() {
@@ -94,16 +110,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reset to Defaults'),
-        content: const Text('Are you sure you want to reset all settings to their default values?'),
+        content: const Text(
+          'Are you sure you want to reset all settings to their default values?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               setState(() {
                 _hostController.text = 'localhost';
                 _portController.text = '8080';
                 _appKeyController.text = 'your-app-key';
-                _authEndpointController.text = 'http://localhost:8000/broadcasting/auth';
+                _authEndpointController.text =
+                    'http://localhost:8000/broadcasting/auth';
                 _wsPathController.text = '/';
                 _authTokenController.text = '';
                 _apiKeyController.text = ''; // NEW
@@ -128,7 +150,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Settings'),
         elevation: 0,
         centerTitle: true,
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'Reset to Defaults', onPressed: _resetToDefaults)],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reset to Defaults',
+            onPressed: _resetToDefaults,
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -141,15 +169,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(Icons.settings_outlined, size: 40, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.settings_outlined,
+                      size: 40,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Server Configuration', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Server Configuration',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          Text('Configure your Laravel Reverb server connection', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                          Text(
+                            'Configure your Laravel Reverb server connection',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -161,7 +205,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // Connection Settings Section
-            Text('Connection Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Connection Settings',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 12),
 
             Card(
@@ -171,7 +220,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     TextFormField(
                       controller: _hostController,
-                      decoration: const InputDecoration(labelText: 'Host', hintText: 'localhost', prefixIcon: Icon(Icons.dns), helperText: 'Reverb server hostname or IP address'),
+                      decoration: const InputDecoration(
+                        labelText: 'Host',
+                        hintText: 'localhost',
+                        prefixIcon: Icon(Icons.dns),
+                        helperText: 'Reverb server hostname or IP address',
+                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Host is required';
@@ -182,7 +236,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _portController,
-                      decoration: const InputDecoration(labelText: 'Port', hintText: '8080', prefixIcon: Icon(Icons.settings_ethernet), helperText: 'Reverb server port number'),
+                      decoration: const InputDecoration(
+                        labelText: 'Port',
+                        hintText: '8080',
+                        prefixIcon: Icon(Icons.settings_ethernet),
+                        helperText: 'Reverb server port number',
+                      ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -202,7 +261,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         labelText: 'Application Key',
                         hintText: 'your-app-key',
                         prefixIcon: Icon(Icons.key),
-                        helperText: 'Application key from your Reverb configuration',
+                        helperText:
+                            'Application key from your Reverb configuration',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -214,7 +274,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _wsPathController,
-                      decoration: const InputDecoration(labelText: 'WebSocket Path', hintText: '/', prefixIcon: Icon(Icons.route), helperText: 'Custom WebSocket path (usually "/")'),
+                      decoration: const InputDecoration(
+                        labelText: 'WebSocket Path',
+                        hintText: '/',
+                        prefixIcon: Icon(Icons.route),
+                        helperText: 'Custom WebSocket path (usually "/")',
+                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'WebSocket path is required';
@@ -225,7 +290,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 16),
                     SwitchListTile(
                       title: const Text('Use TLS/SSL (wss://)'),
-                      subtitle: Text(_useTLS ? 'Secure WebSocket connection (wss://)' : 'Standard WebSocket connection (ws://)'),
+                      subtitle: Text(
+                        _useTLS
+                            ? 'Secure WebSocket connection (wss://)'
+                            : 'Standard WebSocket connection (ws://)',
+                      ),
                       value: _useTLS,
                       onChanged: (value) {
                         setState(() {
@@ -243,7 +312,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         prefixIcon: const Icon(Icons.vpn_key),
                         helperText: 'Optional: API key for authentication',
                         suffixIcon: IconButton(
-                          icon: Icon(_showApiKey ? Icons.visibility_off : Icons.visibility),
+                          icon: Icon(
+                            _showApiKey
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
                           onPressed: () {
                             setState(() {
                               _showApiKey = !_showApiKey;
@@ -260,7 +333,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         labelText: 'Cluster (Optional)',
                         hintText: 'us-east-1',
                         prefixIcon: Icon(Icons.cloud),
-                        helperText: 'Optional: Predefined cluster configuration (us-east-1, eu-west-1, local, etc.)',
+                        helperText:
+                            'Optional: Predefined cluster configuration (us-east-1, eu-west-1, local, etc.)',
                       ),
                     ),
                   ],
@@ -271,7 +345,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // Authentication Settings Section
-            Text('Authentication Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Authentication Settings',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 12),
 
             Card(
@@ -285,7 +364,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         labelText: 'Auth Endpoint',
                         hintText: 'http://localhost:8000/broadcasting/auth',
                         prefixIcon: Icon(Icons.verified_user),
-                        helperText: 'Laravel broadcasting authentication endpoint',
+                        helperText:
+                            'Laravel broadcasting authentication endpoint',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -301,9 +381,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         labelText: 'Auth Token (Optional)',
                         hintText: 'Bearer token for authentication',
                         prefixIcon: const Icon(Icons.token),
-                        helperText: 'Optional: Bearer token for private channels',
+                        helperText:
+                            'Optional: Bearer token for private channels',
                         suffixIcon: IconButton(
-                          icon: Icon(_showAuthToken ? Icons.visibility_off : Icons.visibility),
+                          icon: Icon(
+                            _showAuthToken
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
                           onPressed: () {
                             setState(() {
                               _showAuthToken = !_showAuthToken;
@@ -330,9 +415,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.lightbulb_outline, color: theme.colorScheme.primary),
+                        Icon(
+                          Icons.lightbulb_outline,
+                          color: theme.colorScheme.primary,
+                        ),
                         const SizedBox(width: 8),
-                        Text('Setup Guide', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          'Setup Guide',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -358,9 +451,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Save Button
             ElevatedButton.icon(
               onPressed: _isSaving ? null : _saveConfiguration,
-              icon: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save),
               label: Text(_isSaving ? 'Saving...' : 'Save Settings'),
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
             ),
 
             const SizedBox(height: 16),

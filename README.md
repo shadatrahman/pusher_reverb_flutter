@@ -695,6 +695,50 @@ The `ReverbClient.instance()` method accepts the following parameters:
 | `onReconnecting` | `void Function()?`                 | No               | `null`                 | Callback fired when attempting to reconnect      |
 | `onDisconnected` | `void Function()?`                 | No               | `null`                 | Callback fired when disconnected                 |
 | `onError`        | `void Function(dynamic error)?`    | No               | `null`                 | Callback fired on connection errors              |
+| `pingInterval`   | `Duration?`                        | No               | `null`                 | Interval for WebSocket protocol-level ping frames to prevent idle disconnections (e.g., `Duration(seconds: 15)`). If null, library default is used. |
+
+### WebSocket Keepalive: Preventing Idle Disconnects
+
+Some servers (including some Laravel Reverb deployments behind proxies) have aggressive idle timeouts (typically 30 seconds). Even though the client automatically responds to `pusher:ping` events at the application level, the underlying WebSocket connection can still be silently dropped at the TCP level if no frames are exchanged.
+
+To address this, you can configure the client to send periodic WebSocket **ping frames** at the protocol level by setting the `pingInterval` parameter:
+
+```dart
+final client = ReverbClient.instance(
+  host: 'localhost',
+  port: 8080,
+  appKey: 'your-app-key',
+  pingInterval: Duration(seconds: 15), // Send ping every 15 seconds
+);
+```
+
+**How it works:**
+
+- When `pingInterval` is set (e.g., 15 seconds), the underlying `IOWebSocketChannel` automatically sends WebSocket ping frames at that interval.
+- The server responds with pong frames, keeping the connection alive indefinitely.
+- This operates at the WebSocket protocol layer, below the Pusher application protocol.
+- Combined with the automatic `pusher:ping/pong` handling, your connection stays robust in all network conditions.
+
+**Recommended values:**
+
+- **Less than the server's idle timeout** — If your server times out after 30 seconds, use `15` or `20` seconds.
+- **Not too frequent** — Avoid setting below 5 seconds to prevent unnecessary overhead.
+- **Default** — If you don't set `pingInterval`, the underlying WebSocket library uses its own default (which may be sufficient for many deployments).
+
+**When to use:**
+
+- You're experiencing disconnections after ~30 seconds of inactivity
+- Your Reverb server is behind a load balancer, reverse proxy, or firewall with idle timeouts
+- You want maximum reliability for long-lived connections
+- Your app stays on a single screen for extended periods receiving real-time updates
+
+**Troubleshooting:**
+
+If your connection still drops:
+1. Verify the server's `ping_interval` and `ping_timeout` settings in `config/reverb.php`
+2. Ensure your `pingInterval` is lower than the server's `ping_timeout`
+3. Check for network intermediaries (proxies, firewalls) that may have their own idle timeouts
+4. Confirm the client logs show regular ping/pong activity (enable WebSocket logging if needed)
 
 ### Authorizer Function
 
@@ -1136,7 +1180,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you encounter any issues or have questions:
 
-- Check existing [GitHub Issues](https://github.com/yourusername/pusher_reverb_flutter/issues)
+- Check existing [GitHub Issues](https://github.com/shadatrahman/pusher_reverb_flutter/issues)
 - Create a new issue with detailed information
 - Include Flutter/Dart versions and error logs when reporting bugs
 

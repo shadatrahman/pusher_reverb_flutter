@@ -30,7 +30,14 @@ class PresenceChannel extends PrivateChannel {
   /// [socketId] The socket ID for authentication.
   /// [sendMessage] Callback for sending WebSocket messages.
   /// [channelData] Optional data to include in the subscription (typically user info).
-  PresenceChannel({required super.name, required super.authorizer, required super.authEndpoint, required super.socketId, required super.sendMessage, this.channelData}) {
+  PresenceChannel({
+    required super.name,
+    required super.authorizer,
+    required super.authEndpoint,
+    required super.socketId,
+    required super.sendMessage,
+    this.channelData,
+  }) {
     validatePresenceChannelName(name);
   }
 
@@ -64,7 +71,9 @@ class PresenceChannel extends PrivateChannel {
       }
 
       // Send authentication request to the server with channel data
-      final authResponse = await _authenticateWithServerAndChannelData(authHeaders);
+      final authResponse = await _authenticateWithServerAndChannelData(
+        authHeaders,
+      );
 
       // Check again if channel is still subscribing before sending message
       if (state != ChannelState.subscribing) {
@@ -74,7 +83,12 @@ class PresenceChannel extends PrivateChannel {
       // Send subscription message with auth key and channel data
       final message = {
         'event': 'pusher:subscribe',
-        'data': {'channel': name, 'auth': authResponse['auth'], if (authResponse.containsKey('channel_data')) 'channel_data': authResponse['channel_data']},
+        'data': {
+          'channel': name,
+          'auth': authResponse['auth'],
+          if (authResponse.containsKey('channel_data'))
+            'channel_data': authResponse['channel_data'],
+        },
       };
 
       sendMessage(_encodeMessage(message));
@@ -95,10 +109,16 @@ class PresenceChannel extends PrivateChannel {
   /// Returns a map containing 'auth' and optionally 'channel_data'.
   ///
   /// Throws [AuthenticationException] if authentication fails.
-  Future<Map<String, dynamic>> _authenticateWithServerAndChannelData(Map<String, String> authHeaders) async {
+  Future<Map<String, dynamic>> _authenticateWithServerAndChannelData(
+    Map<String, String> authHeaders,
+  ) async {
     try {
       // Prepare the request body with channel name, socket ID, and channel data
-      final requestBody = {'socket_id': socketId, 'channel_name': name, if (channelData != null) 'channel_data': jsonEncode(channelData)};
+      final requestBody = {
+        'socket_id': socketId,
+        'channel_name': name,
+        if (channelData != null) 'channel_data': jsonEncode(channelData),
+      };
 
       // Create the HTTP request
       final response = await http.post(
@@ -117,24 +137,49 @@ class PresenceChannel extends PrivateChannel {
         final authKey = responseData['auth'] as String?;
 
         if (authKey == null || authKey.isEmpty) {
-          throw AuthenticationException(message: 'Authentication response missing auth key', channelName: name, statusCode: response.statusCode);
+          throw AuthenticationException(
+            message: 'Authentication response missing auth key',
+            channelName: name,
+            statusCode: response.statusCode,
+          );
         }
 
-        return {'auth': authKey, if (responseData.containsKey('channel_data')) 'channel_data': responseData['channel_data']};
+        return {
+          'auth': authKey,
+          if (responseData.containsKey('channel_data'))
+            'channel_data': responseData['channel_data'],
+        };
       } else if (response.statusCode == 403) {
-        throw AuthenticationException(message: 'Authentication forbidden - insufficient permissions', channelName: name, statusCode: response.statusCode);
+        throw AuthenticationException(
+          message: 'Authentication forbidden - insufficient permissions',
+          channelName: name,
+          statusCode: response.statusCode,
+        );
       } else {
-        throw AuthenticationException(message: 'Authentication failed with status ${response.statusCode}', channelName: name, statusCode: response.statusCode);
+        throw AuthenticationException(
+          message: 'Authentication failed with status ${response.statusCode}',
+          channelName: name,
+          statusCode: response.statusCode,
+        );
       }
     } on http.ClientException catch (e) {
-      throw AuthenticationException(message: 'Network error during authentication: ${e.message}', channelName: name);
+      throw AuthenticationException(
+        message: 'Network error during authentication: ${e.message}',
+        channelName: name,
+      );
     } on FormatException catch (e) {
-      throw AuthenticationException(message: 'Invalid response format during authentication: ${e.message}', channelName: name);
+      throw AuthenticationException(
+        message: 'Invalid response format during authentication: ${e.message}',
+        channelName: name,
+      );
     } catch (e) {
       if (e is AuthenticationException) {
         rethrow;
       }
-      throw AuthenticationException(message: 'Unexpected error during authentication: $e', channelName: name);
+      throw AuthenticationException(
+        message: 'Unexpected error during authentication: $e',
+        channelName: name,
+      );
     }
   }
 
@@ -154,7 +199,10 @@ class PresenceChannel extends PrivateChannel {
         if (hash != null && hash is Map<String, dynamic>) {
           _members.clear();
           hash.forEach((userId, userInfo) {
-            final member = PresenceMember(id: userId, info: userInfo is Map<String, dynamic> ? userInfo : {});
+            final member = PresenceMember(
+              id: userId,
+              info: userInfo is Map<String, dynamic> ? userInfo : {},
+            );
             _members[userId] = member;
           });
         }
@@ -188,7 +236,10 @@ class PresenceChannel extends PrivateChannel {
       final userInfo = data['user_info'];
 
       if (userId != null) {
-        final member = PresenceMember(id: userId, info: userInfo is Map<String, dynamic> ? userInfo : {});
+        final member = PresenceMember(
+          id: userId,
+          info: userInfo is Map<String, dynamic> ? userInfo : {},
+        );
         _members[userId] = member;
       }
     }

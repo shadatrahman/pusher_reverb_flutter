@@ -47,7 +47,14 @@ class EncryptedChannel extends PrivateChannel {
   ///
   /// Throws [ArgumentError] if the channel name doesn't start with "private-encrypted-"
   /// or if the encryption key is invalid.
-  EncryptedChannel({required super.name, required super.authorizer, required super.authEndpoint, required super.socketId, required super.sendMessage, required this.encryptionMasterKey}) {
+  EncryptedChannel({
+    required super.name,
+    required super.authorizer,
+    required super.authEndpoint,
+    required super.socketId,
+    required super.sendMessage,
+    required this.encryptionMasterKey,
+  }) {
     validateEncryptedChannelName(name);
     _validateEncryptionKey();
   }
@@ -73,7 +80,9 @@ class EncryptedChannel extends PrivateChannel {
       if (e is ArgumentError) {
         rethrow;
       }
-      throw ArgumentError('Encryption master key must be a valid base64-encoded string: $e');
+      throw ArgumentError(
+        'Encryption master key must be a valid base64-encoded string: $e',
+      );
     }
   }
 
@@ -134,7 +143,9 @@ class EncryptedChannel extends PrivateChannel {
       final iv = encrypt.IV(ivBytes);
 
       // Create the encrypter with AES CBC mode
-      final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+      final encrypter = encrypt.Encrypter(
+        encrypt.AES(key, mode: encrypt.AESMode.cbc),
+      );
 
       // Decrypt the ciphertext
       final decrypted = encrypter.decrypt64(ciphertext, iv: iv);
@@ -156,7 +167,11 @@ class EncryptedChannel extends PrivateChannel {
   void _handleDecryptionError(String eventName, Object error) {
     // Emit an error event that applications can listen to
     // We use a special event name to distinguish decryption errors
-    final errorData = {'error': 'decryption_failed', 'event': eventName, 'message': 'Failed to decrypt event data'};
+    final errorData = {
+      'error': 'decryption_failed',
+      'event': eventName,
+      'message': 'Failed to decrypt event data',
+    };
 
     // Call parent's handleEvent with the error data
     // This allows apps to listen for decryption errors

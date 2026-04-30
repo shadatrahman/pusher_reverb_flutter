@@ -12,7 +12,9 @@ class PresenceChannelScreen extends StatefulWidget {
 
 class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
   final _reverbService = ReverbService.instance;
-  final _channelNameController = TextEditingController(text: 'presence-chat-room');
+  final _channelNameController = TextEditingController(
+    text: 'presence-chat-room',
+  );
 
   PresenceChannel? _channel;
   final List<ChannelEvent> _events = [];
@@ -69,7 +71,8 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
           _events.insert(0, event);
 
           // Update member list when members join/leave
-          if (event.eventName == 'pusher:member_added' || event.eventName == 'pusher:member_removed') {
+          if (event.eventName == 'pusher:member_added' ||
+              event.eventName == 'pusher:member_removed') {
             _members = List.from(_channel!.members);
           }
 
@@ -150,7 +153,14 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
       appBar: AppBar(
         title: const Text('Presence Channels'),
         elevation: 0,
-        actions: [if (_isSubscribed) IconButton(icon: const Icon(Icons.clear_all), tooltip: 'Clear Events', onPressed: _clearEvents)],
+        actions: [
+          if (_isSubscribed)
+            IconButton(
+              icon: const Icon(Icons.clear_all),
+              tooltip: 'Clear Events',
+              onPressed: _clearEvents,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -166,16 +176,35 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.people, color: Colors.white, size: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.people,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Presence Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('Track who is subscribed to the channel', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                          Text(
+                            'Presence Channels',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Track who is subscribed to the channel',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -189,7 +218,9 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Card(
-              color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
+              color: theme.colorScheme.secondaryContainer.withValues(
+                alpha: 0.3,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -197,9 +228,18 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: theme.colorScheme.secondary, size: 20),
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.secondary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                        Text('About Presence Channels', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          'About Presence Channels',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -224,7 +264,12 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
               children: [
                 TextField(
                   controller: _channelNameController,
-                  decoration: const InputDecoration(labelText: 'Presence Channel Name', hintText: 'presence-chat-room', prefixIcon: Icon(Icons.tag), helperText: 'Must start with "presence-"'),
+                  decoration: const InputDecoration(
+                    labelText: 'Presence Channel Name',
+                    hintText: 'presence-chat-room',
+                    prefixIcon: Icon(Icons.tag),
+                    helperText: 'Must start with "presence-"',
+                  ),
                   enabled: !_isSubscribed,
                 ),
                 const SizedBox(height: 16),
@@ -236,7 +281,13 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                         : _isSubscribed
                         ? _unsubscribe
                         : _subscribe,
-                    icon: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(_isSubscribed ? Icons.cancel : Icons.play_arrow),
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(_isSubscribed ? Icons.cancel : Icons.play_arrow),
                     label: Text(
                       _isLoading
                           ? 'Authenticating...'
@@ -266,7 +317,12 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                       Icon(Icons.error_outline, color: theme.colorScheme.error),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(_error!, style: TextStyle(color: theme.colorScheme.onErrorContainer)),
+                        child: Text(
+                          _error!,
+                          style: TextStyle(
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -282,14 +338,29 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                 children: [
                   const Icon(Icons.people, size: 20),
                   const SizedBox(width: 8),
-                  Text('Online Members', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Online Members',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Text(
                       '${_members.length}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -310,10 +381,18 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                             dense: true,
                             leading: CircleAvatar(
                               backgroundColor: Colors.green,
-                              child: Text(member.id.substring(0, 1).toUpperCase(), style: const TextStyle(color: Colors.white)),
+                              child: Text(
+                                member.id.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                             title: Text('User ${member.id}'),
-                            subtitle: Text(member.info.toString(), style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace')),
+                            subtitle: Text(
+                              member.info.toString(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontFamily: 'monospace',
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -330,14 +409,29 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                 children: [
                   const Icon(Icons.stream, size: 20),
                   const SizedBox(width: 8),
-                  Text('Presence Events', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Presence Events',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Text(
                       '${_events.length}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -352,11 +446,31 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 64,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
                               const SizedBox(height: 16),
-                              Text('Waiting for presence events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+                              Text(
+                                'Waiting for presence events...',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                ),
+                              ),
                               const SizedBox(height: 8),
-                              Text('Events will appear when members join/leave', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                              Text(
+                                'Events will appear when members join/leave',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         )
@@ -371,11 +485,27 @@ class _PresenceChannelScreenState extends State<PresenceChannelScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        Text('Subscribe to see online members', style: theme.textTheme.titleMedium),
+                        Text(
+                          'Subscribe to see online members',
+                          style: theme.textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 8),
-                        Text('Ensure authentication is configured', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                        Text(
+                          'Ensure authentication is configured',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

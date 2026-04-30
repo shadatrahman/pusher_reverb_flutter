@@ -47,10 +47,14 @@ class Channel {
   final List<ChannelStateListener> _stateListeners = [];
 
   /// Stream controller for channel events.
-  final StreamController<ChannelEvent> _eventStreamController = StreamController<ChannelEvent>.broadcast();
+  final StreamController<ChannelEvent> _eventStreamController =
+      StreamController<ChannelEvent>.broadcast();
 
   /// Creates a new Channel instance.
-  Channel({required this.name, required void Function(String message) sendMessage}) : _sendMessage = sendMessage {
+  Channel({
+    required this.name,
+    required void Function(String message) sendMessage,
+  }) : _sendMessage = sendMessage {
     _validateChannelName();
   }
 
@@ -61,7 +65,10 @@ class Channel {
     }
 
     if (name.length > 200) {
-      throw InvalidChannelNameException('Channel name cannot exceed 200 characters', name);
+      throw InvalidChannelNameException(
+        'Channel name cannot exceed 200 characters',
+        name,
+      );
     }
 
     // Check for invalid characters
@@ -77,7 +84,8 @@ class Channel {
 
   /// Subscribes to the channel.
   Future<void> subscribe() async {
-    if (_state == ChannelState.subscribed || _state == ChannelState.subscribing) {
+    if (_state == ChannelState.subscribed ||
+        _state == ChannelState.subscribing) {
       return;
     }
 
@@ -93,7 +101,8 @@ class Channel {
 
   /// Unsubscribes from the channel.
   Future<void> unsubscribe() async {
-    if (_state == ChannelState.unsubscribed || _state == ChannelState.unsubscribing) {
+    if (_state == ChannelState.unsubscribed ||
+        _state == ChannelState.unsubscribing) {
       return;
     }
 
@@ -199,7 +208,11 @@ class Channel {
   /// Handles incoming events for this channel.
   void handleEvent(String eventName, dynamic data) {
     // Emit event to stream
-    final channelEvent = ChannelEvent(channelName: name, eventName: eventName, data: data);
+    final channelEvent = ChannelEvent(
+      channelName: name,
+      eventName: eventName,
+      data: data,
+    );
     _eventStreamController.add(channelEvent);
 
     // Also call callback-based listeners for backward compatibility
@@ -242,7 +255,9 @@ class Channel {
     if (_state != newState) {
       _state = newState;
       // Safe iteration: create a copy to avoid concurrent modification
-      final stateListenersCopy = List<ChannelStateListener>.from(_stateListeners);
+      final stateListenersCopy = List<ChannelStateListener>.from(
+        _stateListeners,
+      );
       for (final listener in stateListenersCopy) {
         listener(newState);
       }
@@ -272,16 +287,16 @@ class Channel {
     }
 
     if (_state != ChannelState.subscribed) {
-      throw StateError('Channel must be subscribed to send client events (whisper)');
+      throw StateError(
+        'Channel must be subscribed to send client events (whisper)',
+      );
     }
 
-    final clientEventName = eventName.startsWith('client-') ? eventName : 'client-$eventName';
+    final clientEventName = eventName.startsWith('client-')
+        ? eventName
+        : 'client-$eventName';
 
-    final message = {
-      'event': clientEventName,
-      'data': data,
-      'channel': name,
-    };
+    final message = {'event': clientEventName, 'data': data, 'channel': name};
 
     sendMessage(_encodeMessage(message));
   }

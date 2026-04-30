@@ -13,7 +13,8 @@ import '../models/exceptions.dart';
 /// Returns a Future that completes with a Map of authentication headers.
 /// The headers should include any necessary tokens or credentials for
 /// authenticating the private channel subscription.
-typedef Authorizer = Future<Map<String, String>> Function(String channelName, String socketId);
+typedef Authorizer =
+    Future<Map<String, String>> Function(String channelName, String socketId);
 
 /// Validates that a channel name is a valid private channel name.
 ///
@@ -24,16 +25,25 @@ typedef Authorizer = Future<Map<String, String>> Function(String channelName, St
 /// Throws [InvalidChannelNameException] if the channel name is not a valid private channel name.
 void validatePrivateChannelName(String channelName) {
   if (channelName.isEmpty) {
-    throw InvalidChannelNameException('Channel name cannot be empty', channelName);
+    throw InvalidChannelNameException(
+      'Channel name cannot be empty',
+      channelName,
+    );
   }
 
   if (!channelName.startsWith('private-')) {
-    throw InvalidChannelNameException('Private channel name must start with "private-" prefix', channelName);
+    throw InvalidChannelNameException(
+      'Private channel name must start with "private-" prefix',
+      channelName,
+    );
   }
 
   // Use the same validation as the base Channel class for the rest of the name
   if (channelName.length > 200) {
-    throw InvalidChannelNameException('Channel name cannot exceed 200 characters', channelName);
+    throw InvalidChannelNameException(
+      'Channel name cannot exceed 200 characters',
+      channelName,
+    );
   }
 
   final invalidChars = RegExp(r'[^a-zA-Z0-9_\-=@,.;]');
@@ -55,16 +65,25 @@ void validatePrivateChannelName(String channelName) {
 /// Throws [InvalidChannelNameException] if the channel name is not a valid presence channel name.
 void validatePresenceChannelName(String channelName) {
   if (channelName.isEmpty) {
-    throw InvalidChannelNameException('Channel name cannot be empty', channelName);
+    throw InvalidChannelNameException(
+      'Channel name cannot be empty',
+      channelName,
+    );
   }
 
   if (!channelName.startsWith('presence-')) {
-    throw InvalidChannelNameException('Presence channel name must start with "presence-" prefix', channelName);
+    throw InvalidChannelNameException(
+      'Presence channel name must start with "presence-" prefix',
+      channelName,
+    );
   }
 
   // Use the same validation as the base Channel class for the rest of the name
   if (channelName.length > 200) {
-    throw InvalidChannelNameException('Channel name cannot exceed 200 characters', channelName);
+    throw InvalidChannelNameException(
+      'Channel name cannot exceed 200 characters',
+      channelName,
+    );
   }
 
   final invalidChars = RegExp(r'[^a-zA-Z0-9_\-=@,.;]');
@@ -87,16 +106,25 @@ void validatePresenceChannelName(String channelName) {
 /// Throws [InvalidChannelNameException] if the channel name is not a valid encrypted channel name.
 void validateEncryptedChannelName(String channelName) {
   if (channelName.isEmpty) {
-    throw InvalidChannelNameException('Channel name cannot be empty', channelName);
+    throw InvalidChannelNameException(
+      'Channel name cannot be empty',
+      channelName,
+    );
   }
 
   if (!channelName.startsWith('private-encrypted-')) {
-    throw InvalidChannelNameException('Encrypted channel name must start with "private-encrypted-" prefix', channelName);
+    throw InvalidChannelNameException(
+      'Encrypted channel name must start with "private-encrypted-" prefix',
+      channelName,
+    );
   }
 
   // Use the same validation as the base Channel class for the rest of the name
   if (channelName.length > 200) {
-    throw InvalidChannelNameException('Channel name cannot exceed 200 characters', channelName);
+    throw InvalidChannelNameException(
+      'Channel name cannot exceed 200 characters',
+      channelName,
+    );
   }
 
   final invalidChars = RegExp(r'[^a-zA-Z0-9_\-=@,.;]');

@@ -12,8 +12,12 @@ class EncryptedChannelScreen extends StatefulWidget {
 
 class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
   final _reverbService = ReverbService.instance;
-  final _channelNameController = TextEditingController(text: 'private-encrypted-messages');
-  final _encryptionKeyController = TextEditingController(text: 'your-32-byte-base64-encoded-key');
+  final _channelNameController = TextEditingController(
+    text: 'private-encrypted-messages',
+  );
+  final _encryptionKeyController = TextEditingController(
+    text: 'your-32-byte-base64-encoded-key',
+  );
 
   EncryptedChannel? _channel;
   final List<ChannelEvent> _events = [];
@@ -53,7 +57,8 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
       // Validate that it starts with "private-encrypted-"
       if (!channelName.startsWith('private-encrypted-')) {
         setState(() {
-          _error = 'Encrypted channel names must start with "private-encrypted-"';
+          _error =
+              'Encrypted channel names must start with "private-encrypted-"';
           _isLoading = false;
         });
         return;
@@ -68,7 +73,10 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
       }
 
       // Get or create the encrypted channel
-      _channel = _reverbService.client!.encryptedChannel(channelName, encryptionMasterKey: encryptionKey);
+      _channel = _reverbService.client!.encryptedChannel(
+        channelName,
+        encryptionMasterKey: encryptionKey,
+      );
 
       // Subscribe to the channel (this will trigger authentication)
       await _channel!.subscribe();
@@ -156,7 +164,14 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
       appBar: AppBar(
         title: const Text('Encrypted Channels'),
         elevation: 0,
-        actions: [if (_isSubscribed) IconButton(icon: const Icon(Icons.clear_all), tooltip: 'Clear Events', onPressed: _clearEvents)],
+        actions: [
+          if (_isSubscribed)
+            IconButton(
+              icon: const Icon(Icons.clear_all),
+              tooltip: 'Clear Events',
+              onPressed: _clearEvents,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -172,16 +187,35 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.purple, borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.enhanced_encryption, color: Colors.white, size: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.enhanced_encryption,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Encrypted Channels', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          Text('End-to-end encrypted with AES-256', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                          Text(
+                            'Encrypted Channels',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'End-to-end encrypted with AES-256',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -207,9 +241,18 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.warning_amber, color: Colors.amber, size: 20),
+                                const Icon(
+                                  Icons.warning_amber,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
-                                Text('Security Best Practices', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                Text(
+                                  'Security Best Practices',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -231,7 +274,9 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Card(
-                      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                      color: theme.colorScheme.secondaryContainer.withValues(
+                        alpha: 0.3,
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -239,9 +284,18 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.info_outline, color: theme.colorScheme.secondary, size: 20),
+                                Icon(
+                                  Icons.info_outline,
+                                  color: theme.colorScheme.secondary,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
-                                Text('About Encrypted Channels', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                Text(
+                                  'About Encrypted Channels',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -285,7 +339,11 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                             prefixIcon: const Icon(Icons.vpn_key),
                             helperText: 'Base64-encoded 32-byte encryption key',
                             suffixIcon: IconButton(
-                              icon: Icon(_showEncryptionKey ? Icons.visibility_off : Icons.visibility),
+                              icon: Icon(
+                                _showEncryptionKey
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
                               onPressed: () {
                                 setState(() {
                                   _showEncryptionKey = !_showEncryptionKey;
@@ -305,7 +363,19 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                                 : _isSubscribed
                                 ? _unsubscribe
                                 : _subscribe,
-                            icon: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(_isSubscribed ? Icons.cancel : Icons.play_arrow),
+                            icon: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(
+                                    _isSubscribed
+                                        ? Icons.cancel
+                                        : Icons.play_arrow,
+                                  ),
                             label: Text(
                               _isLoading
                                   ? 'Authenticating...'
@@ -332,10 +402,18 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.error_outline, color: theme.colorScheme.error),
+                              Icon(
+                                Icons.error_outline,
+                                color: theme.colorScheme.error,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(_error!, style: TextStyle(color: theme.colorScheme.onErrorContainer)),
+                                child: Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onErrorContainer,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -378,14 +456,29 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                         children: [
                           const Icon(Icons.stream, size: 20),
                           const SizedBox(width: 8),
-                          Text('Encrypted Events', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Encrypted Events',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: Colors.purple, borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.purple,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Text(
                               '${_events.length}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -400,13 +493,28 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                                Icon(
+                                  Icons.inbox_outlined,
+                                  size: 64,
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
                                 const SizedBox(height: 16),
-                                Text('Waiting for encrypted events...', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+                                Text(
+                                  'Waiting for encrypted events...',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Encrypted events will be automatically decrypted',
-                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.4),
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ],
@@ -414,7 +522,11 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                           )
                         : Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Column(children: _events.map((event) => EventListItem(event: event)).toList()),
+                            child: Column(
+                              children: _events
+                                  .map((event) => EventListItem(event: event))
+                                  .toList(),
+                            ),
                           )
                   else
                     Padding(
@@ -422,13 +534,27 @@ class _EncryptedChannelScreenState extends State<EncryptedChannelScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.enhanced_encryption, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                          Icon(
+                            Icons.enhanced_encryption,
+                            size: 64,
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
                           const SizedBox(height: 16),
-                          Text('Subscribe to receive encrypted events', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+                          Text(
+                            'Subscribe to receive encrypted events',
+                            style: theme.textTheme.titleMedium,
+                            textAlign: TextAlign.center,
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             'Events are automatically decrypted using your key',
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ],

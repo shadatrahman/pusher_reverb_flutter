@@ -86,7 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pusher Reverb Flutter'), elevation: 0, centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Pusher Reverb Flutter'),
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await _initializeConnection();
@@ -103,18 +107,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      Icon(Icons.cloud_queue, size: 64, color: theme.colorScheme.primary),
+                      Icon(
+                        Icons.cloud_queue,
+                        size: 64,
+                        color: theme.colorScheme.primary,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'Real-time Communication',
-                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Connect to Laravel Reverb server and explore '
                         'various channel types',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -125,7 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
 
               // Connection Status
-              if (_reverbService.client != null) ConnectionStatusWidget(client: _reverbService.client!),
+              if (_reverbService.client != null)
+                ConnectionStatusWidget(client: _reverbService.client!),
 
               const SizedBox(height: 16),
 
@@ -137,10 +152,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline, color: theme.colorScheme.error),
+                        Icon(
+                          Icons.error_outline,
+                          color: theme.colorScheme.error,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(_connectionError!, style: TextStyle(color: theme.colorScheme.onErrorContainer)),
+                          child: Text(
+                            _connectionError!,
+                            style: TextStyle(
+                              color: theme.colorScheme.onErrorContainer,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -152,7 +175,13 @@ class _HomeScreenState extends State<HomeScreen> {
               // Connect/Disconnect Button
               ElevatedButton.icon(
                 onPressed: _isConnecting ? null : _toggleConnection,
-                icon: _isConnecting ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.power_settings_new),
+                icon: _isConnecting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.power_settings_new),
                 label: Text(
                   _isConnecting
                       ? 'Connecting...'
@@ -160,13 +189,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? 'Disconnect'
                       : 'Connect to Server',
                 ),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
 
               const SizedBox(height: 32),
 
               // Section Title
-              Text('Channel Types', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Channel Types',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
 
               const SizedBox(height: 16),
 
@@ -178,7 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Perfect for broadcasting public information.',
                 icon: Icons.public,
                 color: Colors.blue,
-                onTap: () => _navigateToDemo(context, const PublicChannelScreen()),
+                onTap: () =>
+                    _navigateToDemo(context, const PublicChannelScreen()),
               ),
 
               const SizedBox(height: 12),
@@ -190,7 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Ideal for user-specific data.',
                 icon: Icons.lock,
                 color: Colors.orange,
-                onTap: () => _navigateToDemo(context, const PrivateChannelScreen()),
+                onTap: () =>
+                    _navigateToDemo(context, const PrivateChannelScreen()),
               ),
 
               const SizedBox(height: 12),
@@ -202,7 +240,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Great for chat rooms and collaborative features.',
                 icon: Icons.people,
                 color: Colors.green,
-                onTap: () => _navigateToDemo(context, const PresenceChannelScreen()),
+                onTap: () =>
+                    _navigateToDemo(context, const PresenceChannelScreen()),
               ),
 
               const SizedBox(height: 12),
@@ -214,7 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Maximum security for sensitive data.',
                 icon: Icons.enhanced_encryption,
                 color: Colors.purple,
-                onTap: () => _navigateToDemo(context, const EncryptedChannelScreen()),
+                onTap: () =>
+                    _navigateToDemo(context, const EncryptedChannelScreen()),
               ),
 
               const SizedBox(height: 32),
@@ -229,16 +269,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info_outline, color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.info_outline,
+                            color: theme.colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
-                          Text('Quick Tips', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Quick Tips',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildTip('1. Configure your server settings in the Settings tab', theme),
-                      _buildTip('2. Connect to the server before exploring channels', theme),
-                      _buildTip('3. Each demo shows both callback and stream-based APIs', theme),
-                      _buildTip('4. Check the console logs for detailed events', theme),
+                      _buildTip(
+                        '1. Configure your server settings in the Settings tab',
+                        theme,
+                      ),
+                      _buildTip(
+                        '2. Connect to the server before exploring channels',
+                        theme,
+                      ),
+                      _buildTip(
+                        '3. Each demo shows both callback and stream-based APIs',
+                        theme,
+                      ),
+                      _buildTip(
+                        '4. Check the console logs for detailed events',
+                        theme,
+                      ),
                     ],
                   ),
                 ),
@@ -256,10 +316,20 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('•', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+          Text(
+            '•',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.8))),
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
           ),
         ],
       ),

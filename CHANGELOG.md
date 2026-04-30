@@ -1,3 +1,20 @@
+## [Unreleased]
+
+### New Features
+
+- **WebSocket keepalive with configurable ping interval**: Fixed idle disconnections by adding protocol-level WebSocket ping frames
+  - Added new optional `pingInterval` parameter to `ReverbClient.instance()` and `ReverbClient.forTesting()`
+  - Configures underlying `IOWebSocketChannel` to send automatic WebSocket ping frames (e.g., `Duration(seconds: 15)`)
+  - Prevents silent connection drops from servers with aggressive idle timeouts (typically ~30 seconds)
+  - Fully backward compatible — omit to use default library behavior
+  - Documentation updated with usage examples and configuration guidance
+
+### Bug Fixes
+
+- **Fixed WebSocket idle disconnect issue**: The underlying WebSocket connection no longer drops after ~30 seconds of inactivity when `pingInterval` is properly configured
+
+---
+
 ## 0.0.5
 
 ### New Features
@@ -53,7 +70,6 @@
 ### New Features
 
 - **API Key Authentication Support**: Added optional API key parameter for enhanced authentication
-
   - New `apiKey` parameter in `ReverbClient.instance()` for API key-based authentication
   - API key is automatically included in WebSocket connection headers as `Authorization: Bearer {apiKey}`
   - API key is also included in private channel authentication headers
@@ -61,7 +77,6 @@
   - Example: `ReverbClient.instance(host: 'localhost', port: 8080, appKey: 'app-key', apiKey: 'your-api-key')`
 
 - **Cluster Configuration Support**: Added predefined cluster configurations for easier deployment
-
   - New `cluster` parameter in `ReverbClient.instance()` for predefined cluster settings
   - Available clusters: `us-east-1`, `us-west-2`, `eu-west-1`, `ap-southeast-1`, `local`, `staging`
   - Cluster settings automatically configure host, port, and TLS settings
@@ -69,7 +84,6 @@
   - Example: `ReverbClient.instance(cluster: 'us-east-1', appKey: 'app-key', apiKey: 'your-api-key')`
 
 - **Enhanced Configuration Management**: Added helper methods for configuration access and debugging
-
   - `availableClusters` - Get list of available cluster names
   - `getClusterConfig(String cluster)` - Get configuration for specific cluster
   - `resolvedConfig` - Access to final resolved configuration
@@ -86,14 +100,12 @@
 ### Technical Improvements
 
 - **Configuration Resolution**: Implemented robust configuration resolution system
-
   - Cluster settings override explicit parameters when specified
   - Proper parameter validation for API keys and cluster names
   - Comprehensive error handling for invalid configurations
   - Performance optimized with configuration cached during initialization
 
 - **WebSocket Integration**: Enhanced WebSocket connection with header support
-
   - Uses `IOWebSocketChannel.connect()` with headers for API key authentication
   - Proper header merging for cluster-specific and custom headers
   - Maintains compatibility with existing WebSocket channel factory pattern
@@ -107,7 +119,6 @@
 ### Documentation Updates
 
 - **README.md**: Updated with comprehensive API key and cluster documentation
-
   - New section dedicated to API key and cluster support
   - Usage examples for all new features
   - Updated parameter table with new options
@@ -137,35 +148,30 @@ A comprehensive Flutter/Dart client for Laravel Reverb, providing real-time WebS
 #### Core Features
 
 - **WebSocket Connection Management**
-
   - Connect to Laravel Reverb servers with automatic reconnection
   - Real-time connection state monitoring via streams
   - Enhanced connection callbacks (onConnecting, onConnected, onReconnecting, onDisconnected, onError)
   - Proper socket ID handling and management
 
 - **Channel Types Support**
-
   - **Public Channels**: Open channels accessible to anyone
   - **Private Channels**: Secure channels requiring authentication
   - **Presence Channels**: Track who is subscribed with real-time member lists
   - **Encrypted Channels**: End-to-end encryption using AES-256-CBC
 
 - **Flexible API Design**
-
   - Singleton pattern with `ReverbClient.instance()` for convenient access
   - Stream-based API for idiomatic Dart/Flutter integration
   - Traditional callback-based API for backward compatibility
   - Support for both callback and stream APIs simultaneously
 
 - **Authentication & Security**
-
   - Dynamic authentication with custom authorizers
   - Support for custom authentication headers
   - Configurable authentication endpoints
   - Encrypted channel support with AES-256-CBC encryption
 
 - **Developer Experience**
-
   - Custom WebSocket path support (`wsPath` parameter)
   - Comprehensive example app with all channel types
   - Detailed documentation with 40+ code examples
@@ -187,7 +193,6 @@ A comprehensive Flutter/Dart client for Laravel Reverb, providing real-time WebS
 #### Example App
 
 Includes a comprehensive example application demonstrating:
-
 - Connection management with real-time status
 - Public channel subscriptions
 - Private channel authentication

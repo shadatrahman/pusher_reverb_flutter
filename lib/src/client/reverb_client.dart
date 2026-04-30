@@ -53,6 +53,19 @@ class ReverbClient {
   /// Defaults to false.
   final bool useTLS;
 
+  /// The interval at which to send WebSocket ping frames to keep the
+  /// connection alive. If null, the underlying WebSocket library's
+  /// default behavior is used.
+  ///
+  /// Setting this to a Duration (e.g., Duration(seconds: 15)) ensures
+  /// that ping frames are sent regularly, which prevents idle disconnections
+  /// from some servers (especially useful behind proxies or with servers
+  /// that have aggressive idle timeouts).
+  ///
+  /// Note: This is separate from the application-level `pusher:ping`/`pusher:pong`
+  /// protocol keepalive which is always handled automatically by the client.
+  final Duration? pingInterval;
+
   /// The WebSocket channel used for communication.
   WebSocketChannel? _channel;
 
@@ -66,7 +79,8 @@ class ReverbClient {
   final Map<String, Channel> _channels = {};
 
   /// Stream controller for connection state changes.
-  final StreamController<ConnectionState> _connectionStateController = StreamController<ConnectionState>.broadcast();
+  final StreamController<ConnectionState> _connectionStateController =
+      StreamController<ConnectionState>.broadcast();
 
   /// The current connection state.
   ConnectionState _currentConnectionState = ConnectionState.disconnected;
@@ -104,13 +118,43 @@ class ReverbClient {
 
   /// Predefined cluster configurations.
   static const Map<String, ClusterConfig> _clusters = {
-    'us-east-1': ClusterConfig(host: 'reverb-us-east-1.pusher.com', port: 443, useTLS: true, region: 'us-east-1'),
-    'us-west-2': ClusterConfig(host: 'reverb-us-west-2.pusher.com', port: 443, useTLS: true, region: 'us-west-2'),
-    'eu-west-1': ClusterConfig(host: 'reverb-eu-west-1.pusher.com', port: 443, useTLS: true, region: 'eu-west-1'),
-    'ap-southeast-1': ClusterConfig(host: 'reverb-ap-southeast-1.pusher.com', port: 443, useTLS: true, region: 'ap-southeast-1'),
+    'us-east-1': ClusterConfig(
+      host: 'reverb-us-east-1.pusher.com',
+      port: 443,
+      useTLS: true,
+      region: 'us-east-1',
+    ),
+    'us-west-2': ClusterConfig(
+      host: 'reverb-us-west-2.pusher.com',
+      port: 443,
+      useTLS: true,
+      region: 'us-west-2',
+    ),
+    'eu-west-1': ClusterConfig(
+      host: 'reverb-eu-west-1.pusher.com',
+      port: 443,
+      useTLS: true,
+      region: 'eu-west-1',
+    ),
+    'ap-southeast-1': ClusterConfig(
+      host: 'reverb-ap-southeast-1.pusher.com',
+      port: 443,
+      useTLS: true,
+      region: 'ap-southeast-1',
+    ),
     // Development clusters
-    'local': ClusterConfig(host: 'localhost', port: 8080, useTLS: false, region: 'local'),
-    'staging': ClusterConfig(host: 'staging-reverb.pusher.com', port: 443, useTLS: true, region: 'staging'),
+    'local': ClusterConfig(
+      host: 'localhost',
+      port: 8080,
+      useTLS: false,
+      region: 'local',
+    ),
+    'staging': ClusterConfig(
+      host: 'staging-reverb.pusher.com',
+      port: 443,
+      useTLS: true,
+      region: 'staging',
+    ),
   };
 
   /// A stream that emits connection state changes.
@@ -123,7 +167,8 @@ class ReverbClient {
   ///   print('Connection state: $state');
   /// });
   /// ```
-  Stream<ConnectionState> get onConnectionStateChange => _connectionStateController.stream;
+  Stream<ConnectionState> get onConnectionStateChange =>
+      _connectionStateController.stream;
 
   /// Gets the current connection state.
   ConnectionState get connectionState => _currentConnectionState;
@@ -142,6 +187,7 @@ class ReverbClient {
     this.authEndpoint,
     this.wsPath,
     this.useTLS = false,
+    this.pingInterval,
     this.onConnecting,
     this.onConnected,
     this.onReconnecting,
@@ -167,7 +213,9 @@ class ReverbClient {
 
     // Validate cluster if provided
     if (cluster != null && !_clusters.containsKey(cluster)) {
-      throw ConnectionException('Invalid cluster: $cluster. Available clusters: ${_clusters.keys.join(', ')}');
+      throw ConnectionException(
+        'Invalid cluster: $cluster. Available clusters: ${_clusters.keys.join(', ')}',
+      );
     }
 
     // Resolve configuration
@@ -188,6 +236,7 @@ class ReverbClient {
   ///   appKey: 'my-app-key',
   ///   apiKey: 'my-api-key',
   ///   cluster: 'us-east-1',
+  ///   pingInterval: Duration(seconds: 15),
   /// );
   ///
   /// // Later access (parameters optional)
@@ -203,6 +252,9 @@ class ReverbClient {
   /// [authEndpoint] Optional authentication endpoint URL for private channel authentication.
   /// [wsPath] Optional custom WebSocket path. If not provided, defaults to '/app/{appKey}'.
   /// [useTLS] Optional flag to use secure WebSocket connections (wss://). Defaults to false.
+  /// [pingInterval] Optional interval for WebSocket protocol-level ping frames. Setting this
+  ///   (e.g., Duration(seconds: 15)) sends automatic pings to prevent idle disconnections from
+  ///   servers with aggressive timeouts. If null, uses library default. Defaults to null.
   /// [onConnecting] Optional callback for when the connection attempt starts.
   /// [onConnected] Optional callback for when the connection is successfully established.
   /// [onReconnecting] Optional callback for when the client starts attempting to reconnect.
@@ -221,6 +273,7 @@ class ReverbClient {
     String? authEndpoint,
     String? wsPath,
     bool? useTLS,
+    Duration? pingInterval,
     void Function()? onConnecting,
     void Function(String? socketId)? onConnected,
     void Function()? onReconnecting,
@@ -245,6 +298,7 @@ class ReverbClient {
         authEndpoint: authEndpoint,
         wsPath: wsPath,
         useTLS: useTLS ?? false,
+        pingInterval: pingInterval,
         onConnecting: onConnecting,
         onConnected: onConnected,
         onReconnecting: onReconnecting,
@@ -301,6 +355,7 @@ class ReverbClient {
     String? authEndpoint,
     String? wsPath,
     bool useTLS = false,
+    Duration? pingInterval,
     void Function()? onConnecting,
     void Function(String? socketId)? onConnected,
     void Function()? onReconnecting,
@@ -318,6 +373,7 @@ class ReverbClient {
       authEndpoint: authEndpoint,
       wsPath: wsPath,
       useTLS: useTLS,
+      pingInterval: pingInterval,
       onConnecting: onConnecting,
       onConnected: onConnected,
       onReconnecting: onReconnecting,
@@ -358,7 +414,12 @@ class ReverbClient {
       }
     }
 
-    return ResolvedConfig(host: finalHost, port: finalPort, useTLS: finalUseTLS, additionalHeaders: additionalHeaders);
+    return ResolvedConfig(
+      host: finalHost,
+      port: finalPort,
+      useTLS: finalUseTLS,
+      additionalHeaders: additionalHeaders,
+    );
   }
 
   /// Gets the list of available clusters.
@@ -427,7 +488,9 @@ class ReverbClient {
     _reconnectAttempts++;
 
     // Calculate delay with exponential backoff: 2^attempt seconds, capped at max
-    final delay = Duration(seconds: (pow(2, _reconnectAttempts) as int).clamp(1, _maxReconnectDelay));
+    final delay = Duration(
+      seconds: (pow(2, _reconnectAttempts) as int).clamp(1, _maxReconnectDelay),
+    );
 
     _setConnectionState(ConnectionState.reconnecting);
     onReconnecting?.call();
@@ -463,17 +526,31 @@ class ReverbClient {
 
       // Create WebSocket with API key headers if provided
       if (apiKey != null) {
-        final headers = <String, dynamic>{'Authorization': 'Bearer $apiKey', ..._resolvedConfig.additionalHeaders};
-        _channel = channelFactory != null ? channelFactory!(uri) : IOWebSocketChannel.connect(uri, headers: headers);
+        final headers = <String, dynamic>{
+          'Authorization': 'Bearer $apiKey',
+          ..._resolvedConfig.additionalHeaders,
+        };
+        _channel = channelFactory != null
+            ? channelFactory!(uri)
+            : IOWebSocketChannel.connect(
+                uri,
+                headers: headers,
+                pingInterval: pingInterval,
+              );
       } else {
-        _channel = channelFactory != null ? channelFactory!(uri) : IOWebSocketChannel.connect(uri);
+        _channel = channelFactory != null
+            ? channelFactory!(uri)
+            : IOWebSocketChannel.connect(uri, pingInterval: pingInterval);
       }
 
       _subscription = _channel?.stream.listen(
         _handleMessage,
         onError: (error) {
           // Wrap WebSocket errors in ConnectionException
-          final exception = ConnectionException('WebSocket error occurred', cause: error);
+          final exception = ConnectionException(
+            'WebSocket error occurred',
+            cause: error,
+          );
           _setConnectionState(ConnectionState.error);
           onError?.call(exception);
         },
@@ -486,7 +563,9 @@ class ReverbClient {
       );
     } catch (e) {
       // Wrap all connection errors in ConnectionException
-      final exception = e is PusherException ? e : ConnectionException('Failed to connect to server', cause: e);
+      final exception = e is PusherException
+          ? e
+          : ConnectionException('Failed to connect to server', cause: e);
       _setConnectionState(ConnectionState.error);
       onError?.call(exception);
       rethrow;
@@ -564,20 +643,34 @@ class ReverbClient {
       if (existingChannel is PrivateChannel) {
         return existingChannel;
       } else {
-        throw ChannelException('Channel already exists as a different channel type. Cannot convert to private channel', channelName: channelName);
+        throw ChannelException(
+          'Channel already exists as a different channel type. Cannot convert to private channel',
+          channelName: channelName,
+        );
       }
     }
 
     if (authorizer == null || authEndpoint == null) {
-      throw ChannelException('Authorizer and authEndpoint must be configured for private channels', channelName: channelName);
+      throw ChannelException(
+        'Authorizer and authEndpoint must be configured for private channels',
+        channelName: channelName,
+      );
     }
 
     if (socketId == null) {
-      throw ConnectionException('Cannot subscribe to channel: not connected to server');
+      throw ConnectionException(
+        'Cannot subscribe to channel: not connected to server',
+      );
     }
 
     final enhancedAuthorizer = _createAuthorizer();
-    final channel = PrivateChannel(name: channelName, authorizer: enhancedAuthorizer, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage);
+    final channel = PrivateChannel(
+      name: channelName,
+      authorizer: enhancedAuthorizer,
+      authEndpoint: authEndpoint!,
+      socketId: socketId!,
+      sendMessage: _sendMessage,
+    );
 
     _channels[channelName] = channel;
     channel.subscribe();
@@ -599,26 +692,44 @@ class ReverbClient {
   /// Throws [InvalidChannelNameException] if the channel name is not a valid presence channel name.
   /// Throws [ChannelException] if authorizer or authEndpoint are not configured.
   /// Throws [ConnectionException] if not connected to the server.
-  PresenceChannel subscribeToPresenceChannel(String channelName, {Map<String, dynamic>? channelData}) {
+  PresenceChannel subscribeToPresenceChannel(
+    String channelName, {
+    Map<String, dynamic>? channelData,
+  }) {
     if (_channels.containsKey(channelName)) {
       final existingChannel = _channels[channelName]!;
       if (existingChannel is PresenceChannel) {
         return existingChannel;
       } else {
-        throw ChannelException('Channel already exists as a different channel type. Cannot convert to presence channel', channelName: channelName);
+        throw ChannelException(
+          'Channel already exists as a different channel type. Cannot convert to presence channel',
+          channelName: channelName,
+        );
       }
     }
 
     if (authorizer == null || authEndpoint == null) {
-      throw ChannelException('Authorizer and authEndpoint must be configured for presence channels', channelName: channelName);
+      throw ChannelException(
+        'Authorizer and authEndpoint must be configured for presence channels',
+        channelName: channelName,
+      );
     }
 
     if (socketId == null) {
-      throw ConnectionException('Cannot subscribe to channel: not connected to server');
+      throw ConnectionException(
+        'Cannot subscribe to channel: not connected to server',
+      );
     }
 
     final enhancedAuthorizer = _createAuthorizer();
-    final channel = PresenceChannel(name: channelName, authorizer: enhancedAuthorizer, authEndpoint: authEndpoint!, socketId: socketId!, sendMessage: _sendMessage, channelData: channelData);
+    final channel = PresenceChannel(
+      name: channelName,
+      authorizer: enhancedAuthorizer,
+      authEndpoint: authEndpoint!,
+      socketId: socketId!,
+      sendMessage: _sendMessage,
+      channelData: channelData,
+    );
 
     _channels[channelName] = channel;
     channel.subscribe();
@@ -656,7 +767,10 @@ class ReverbClient {
   ///   print('Decrypted message: ${event.data}');
   /// });
   /// ```
-  EncryptedChannel encryptedChannel(String channelName, {required String encryptionMasterKey}) {
+  EncryptedChannel encryptedChannel(
+    String channelName, {
+    required String encryptionMasterKey,
+  }) {
     // Validate the channel name early
     validateEncryptedChannelName(channelName);
 
@@ -665,16 +779,24 @@ class ReverbClient {
       if (existingChannel is EncryptedChannel) {
         return existingChannel;
       } else {
-        throw ChannelException('Channel already exists as a different channel type. Cannot convert to encrypted channel', channelName: channelName);
+        throw ChannelException(
+          'Channel already exists as a different channel type. Cannot convert to encrypted channel',
+          channelName: channelName,
+        );
       }
     }
 
     if (authorizer == null || authEndpoint == null) {
-      throw ChannelException('Authorizer and authEndpoint must be configured for encrypted channels', channelName: channelName);
+      throw ChannelException(
+        'Authorizer and authEndpoint must be configured for encrypted channels',
+        channelName: channelName,
+      );
     }
 
     if (socketId == null) {
-      throw ConnectionException('Cannot subscribe to channel: not connected to server');
+      throw ConnectionException(
+        'Cannot subscribe to channel: not connected to server',
+      );
     }
 
     final enhancedAuthorizer = _createAuthorizer();
@@ -724,7 +846,11 @@ class ReverbClient {
   void _handleMessage(dynamic message) {
     // Safely handle message - ensure it's a String before decoding
     if (message == null || message is! String) {
-      onError?.call(ConnectionException('Invalid message format: expected String, got ${message.runtimeType}'));
+      onError?.call(
+        ConnectionException(
+          'Invalid message format: expected String, got ${message.runtimeType}',
+        ),
+      );
       return;
     }
 
@@ -740,7 +866,7 @@ class ReverbClient {
     final data = decodedMessage['data'];
 
     // Respond to server ping to keep the connection alive (Laravel Reverb ping_interval)
-   if (event == 'pusher:ping') {
+    if (event == 'pusher:ping') {
       _sendMessage(jsonEncode({'event': 'pusher:pong', 'data': data}));
       return;
     }
@@ -748,7 +874,11 @@ class ReverbClient {
     if (event == 'pusher:connection_established') {
       // Safely handle connection data - data may be null or not a String
       if (data == null || data is! String) {
-        onError?.call(ConnectionException('Invalid connection data: expected String, got ${data?.runtimeType}'));
+        onError?.call(
+          ConnectionException(
+            'Invalid connection data: expected String, got ${data?.runtimeType}',
+          ),
+        );
         return;
       }
       try {
@@ -759,12 +889,18 @@ class ReverbClient {
         _setConnectionState(ConnectionState.connected);
         onConnected?.call(socketId);
       } catch (e) {
-        onError?.call(ConnectionException('Failed to decode connection data: $e'));
+        onError?.call(
+          ConnectionException('Failed to decode connection data: $e'),
+        );
       }
     } else if (event == 'pusher_internal:subscription_succeeded') {
       // Safely handle subscription data - data may be null or not a String
       if (data == null || data is! String) {
-        onError?.call(ConnectionException('Invalid subscription data: expected String, got ${data?.runtimeType}'));
+        onError?.call(
+          ConnectionException(
+            'Invalid subscription data: expected String, got ${data?.runtimeType}',
+          ),
+        );
         return;
       }
       try {
@@ -780,12 +916,18 @@ class ReverbClient {
           }
         }
       } catch (e) {
-        onError?.call(ConnectionException('Failed to decode subscription data: $e'));
+        onError?.call(
+          ConnectionException('Failed to decode subscription data: $e'),
+        );
       }
     } else if (event == 'pusher_internal:unsubscription_succeeded') {
       // Safely handle unsubscription data - data may be null or not a String
       if (data == null || data is! String) {
-        onError?.call(ConnectionException('Invalid unsubscription data: expected String, got ${data?.runtimeType}'));
+        onError?.call(
+          ConnectionException(
+            'Invalid unsubscription data: expected String, got ${data?.runtimeType}',
+          ),
+        );
         return;
       }
       try {
@@ -796,7 +938,9 @@ class ReverbClient {
           channel?.handleUnsubscriptionSucceeded();
         }
       } catch (e) {
-        onError?.call(ConnectionException('Failed to decode unsubscription data: $e'));
+        onError?.call(
+          ConnectionException('Failed to decode unsubscription data: $e'),
+        );
       }
     } else {
       // Handle channel events
