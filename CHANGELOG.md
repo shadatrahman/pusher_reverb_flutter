@@ -1,20 +1,3 @@
-## [Unreleased]
-
-### New Features
-
-- **WebSocket keepalive with configurable ping interval**: Fixed idle disconnections by adding protocol-level WebSocket ping frames
-  - Added new optional `pingInterval` parameter to `ReverbClient.instance()` and `ReverbClient.forTesting()`
-  - Configures underlying `IOWebSocketChannel` to send automatic WebSocket ping frames (e.g., `Duration(seconds: 15)`)
-  - Prevents silent connection drops from servers with aggressive idle timeouts (typically ~30 seconds)
-  - Fully backward compatible — omit to use default library behavior
-  - Documentation updated with usage examples and configuration guidance
-
-### Bug Fixes
-
-- **Fixed WebSocket idle disconnect issue**: The underlying WebSocket connection no longer drops after ~30 seconds of inactivity when `pingInterval` is properly configured
-
----
-
 ## 0.0.5
 
 ### New Features
@@ -31,11 +14,25 @@
   - Prevents double prefixing of 'client-' in event names
   - Added comprehensive test coverage for whisper functionality
 
+- **WebSocket keepalive with configurable ping interval**: Fixed idle disconnections by adding protocol-level WebSocket ping frames
+  - Added new optional `pingInterval` parameter to `ReverbClient.instance()` and `ReverbClient.forTesting()`
+  - Configures underlying `IOWebSocketChannel` to send automatic WebSocket ping frames (e.g., `Duration(seconds: 15)`)
+  - Prevents silent connection drops from servers with aggressive idle timeouts (typically ~30 seconds)
+  - Fully backward compatible — omit to use default library behavior
+  - Documentation updated with usage examples and configuration guidance
+
+### Bug Fixes
+
+- **Fixed WebSocket idle disconnect issue**: The underlying WebSocket connection no longer drops after ~30 seconds of inactivity when `pingInterval` is properly configured
+
 ### Technical Improvements
 
-- **Updated Dart SDK constraints**: Reduced minimum Dart SDK requirement for broader compatibility
-  - Changed sdk constraint from '^3.9.2' to '>=3.2.3 <4.0.0'
-  - Allows usage with older Flutter/Dart versions while maintaining null safety
+- **Updated dependencies to latest versions**: Ensured compatibility with latest stable packages
+  - `web_socket_channel: ^2.4.0 → ^3.0.3`
+  - `http: ^1.1.0 → ^1.6.0`
+  - `meta: ^1.12.0 → ^1.17.0`
+  - Dev: `flutter_lints: ^5.0.0 → ^6.0.0`, `mockito: ^5.4.4 → ^5.6.4`, `build_runner: ^2.4.10 → ^2.14.1`, `async: ^2.11.0 → ^2.13.1`
+- Applied consistent dart format across entire codebase
 
 ## 0.0.4
 
