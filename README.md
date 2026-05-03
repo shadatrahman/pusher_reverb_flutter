@@ -86,6 +86,7 @@ php artisan reverb:start
   - [Encrypted Channels](#example-5-subscribe-to-an-encrypted-channel)
   - [Flutter Widget Integration](#example-6-using-streambuilder-in-flutter-widgets)
   - [Connection Lifecycle](#example-7-connection-lifecycle-and-enhanced-callbacks)
+  - [Whisper (Client Events)](#example-8-whisper--client-to-client-events)
 - [API Key and Cluster Support](#api-key-and-cluster-support)
 - [Configuration](#configuration)
 - [Error Handling](#error-handling-and-exceptions)
@@ -570,6 +571,49 @@ class ConnectionMonitor extends StatelessWidget {
   }
 }
 ```
+
+### Example 8: Whisper — Client-to-Client Events
+
+Whisper lets subscribed clients send ephemeral events directly to each other (e.g. typing indicators) without going through your server. Requires a **private** or **presence** channel. The event name is automatically prefixed with `client-`.
+
+```dart
+import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
+
+final client = ReverbClient.instance(
+  host: 'localhost',
+  port: 8080,
+  appKey: 'your-app-key',
+  authorizer: (channelName) async {
+    // Return auth token from your server
+    final response = await http.post(
+      Uri.parse('https://your-app.com/broadcasting/auth'),
+      body: {'channel_name': channelName},
+    );
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  },
+);
+
+await client.connect();
+
+// Must use a private or presence channel for whisper
+final channel = client.privateChannel('private-chat.room1');
+await channel.subscribe();
+
+// Send a typing indicator to all other subscribers
+channel.whisper('typing', {'userId': 'alice', 'isTyping': true});
+
+// The other clients listen for client-typing
+channel.bind('client-typing', (data) {
+  final userId = data['userId'];
+  final isTyping = data['isTyping'] as bool;
+  print('$userId ${isTyping ? 'is typing...' : 'stopped typing'}');
+});
+```
+
+**Notes:**
+- Channel must be **subscribed** before calling `whisper()`, otherwise a `StateError` is thrown.
+- Event name is auto-prefixed with `client-` (e.g. `'typing'` → `'client-typing'`). Passing `'client-typing'` directly also works — no double-prefix.
+- Laravel Reverb requires `client-events` to be enabled on the channel in `config/broadcasting.php`.
 
 ## 🔑 API Key and Cluster Support
 
@@ -1060,6 +1104,7 @@ InvalidChannelNameException: Private channel name must start with "private-" pre
 - `unsubscribe()` - Unsubscribe from the channel
 - `bind(String event, Function callback)` - Listen for specific event (callback API)
 - `unbind(String event)` - Stop listening for event (callback API)
+- `whisper(String eventName, dynamic data)` - Send a client-to-client event to other subscribers (private/presence channels only). Event name is auto-prefixed with `client-`.
 - `stream` - Stream of all channel events (Stream API)
 - `state` - Current channel state
 - `onStateChange` - Stream of channel state changes

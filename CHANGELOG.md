@@ -1,3 +1,9 @@
+## 0.0.6
+
+### Documentation
+
+- **Added whisper usage to README**: Added Example 8 demonstrating client-to-client events via `whisper()`, including typing indicator pattern, channel requirements, and auto-prefix behaviour. Added `whisper()` entry to Channel API reference and Table of Contents.
+
 ## 0.0.5
 
 ### New Features
