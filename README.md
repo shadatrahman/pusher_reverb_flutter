@@ -599,8 +599,15 @@ await client.connect();
 final channel = client.privateChannel('private-chat.room1');
 await channel.subscribe();
 
-// Send a typing indicator to all other subscribers
-channel.whisper('typing', {'userId': 'alice', 'isTyping': true});
+// `subscribe()` returns once the request is sent — the channel is not
+// `subscribed` until the server confirms. Wait for that confirmation
+// before whispering, otherwise `whisper()` throws a StateError.
+channel.addStateListener((state) {
+  if (state == ChannelState.subscribed) {
+    // Send a typing indicator to all other subscribers
+    channel.whisper('typing', {'userId': 'alice', 'isTyping': true});
+  }
+});
 
 // The other clients listen for client-typing
 channel.bind('client-typing', (data) {
@@ -611,7 +618,7 @@ channel.bind('client-typing', (data) {
 ```
 
 **Notes:**
-- Channel must be **subscribed** before calling `whisper()`, otherwise a `StateError` is thrown.
+- Channel must be **subscribed** before calling `whisper()`, otherwise a `StateError` is thrown. `subscribe()` only sends the request — check `channel.state == ChannelState.subscribed` or use `addStateListener` (as above) before whispering.
 - Event name is auto-prefixed with `client-` (e.g. `'typing'` → `'client-typing'`). Passing `'client-typing'` directly also works — no double-prefix.
 - Laravel Reverb requires `client-events` to be enabled on the channel in `config/broadcasting.php`.
 

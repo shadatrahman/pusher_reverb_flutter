@@ -894,53 +894,59 @@ class ReverbClient {
         );
       }
     } else if (event == 'pusher_internal:subscription_succeeded') {
-      // Safely handle subscription data - data may be null or not a String
-      if (data == null || data is! String) {
-        onError?.call(
-          ConnectionException(
-            'Invalid subscription data: expected String, got ${data?.runtimeType}',
-          ),
-        );
-        return;
-      }
-      try {
-        final channelData = jsonDecode(data) as Map<String, dynamic>;
-        final channelName = channelData['channel'] as String?;
-        if (channelName != null) {
-          final channel = _channels[channelName];
-          // Pass subscription data for presence channels
-          if (channel is PresenceChannel) {
-            channel.handleSubscriptionSucceeded(channelData);
-          } else {
-            channel?.handleSubscriptionSucceeded();
-          }
+      // Per the Pusher/Reverb protocol the channel name is sent at the top
+      // level of the message. The `data` payload carries presence info, or is
+      // an empty object for public/private channels. Some payloads nest the
+      // channel name inside `data`, so fall back to that for compatibility.
+      String? channelName = decodedMessage['channel'] as String?;
+      Map<String, dynamic> subscriptionData = const {};
+
+      if (data is String && data.isNotEmpty) {
+        try {
+          subscriptionData = jsonDecode(data) as Map<String, dynamic>;
+        } catch (e) {
+          onError?.call(
+            ConnectionException('Failed to decode subscription data: $e'),
+          );
+          return;
         }
-      } catch (e) {
-        onError?.call(
-          ConnectionException('Failed to decode subscription data: $e'),
-        );
+      } else if (data is Map<String, dynamic>) {
+        subscriptionData = data;
+      }
+
+      channelName ??= subscriptionData['channel'] as String?;
+
+      if (channelName != null) {
+        final channel = _channels[channelName];
+        // Pass subscription data for presence channels
+        if (channel is PresenceChannel) {
+          channel.handleSubscriptionSucceeded(subscriptionData);
+        } else {
+          channel?.handleSubscriptionSucceeded();
+        }
       }
     } else if (event == 'pusher_internal:unsubscription_succeeded') {
-      // Safely handle unsubscription data - data may be null or not a String
-      if (data == null || data is! String) {
-        onError?.call(
-          ConnectionException(
-            'Invalid unsubscription data: expected String, got ${data?.runtimeType}',
-          ),
-        );
-        return;
-      }
-      try {
-        final channelData = jsonDecode(data) as Map<String, dynamic>;
-        final channelName = channelData['channel'] as String?;
-        if (channelName != null) {
-          final channel = _channels[channelName];
-          channel?.handleUnsubscriptionSucceeded();
+      // Channel name is sent at the top level of the message; fall back to a
+      // nested `data` field for compatibility with alternate payloads.
+      String? channelName = decodedMessage['channel'] as String?;
+
+      if (channelName == null && data is String && data.isNotEmpty) {
+        try {
+          final channelData = jsonDecode(data) as Map<String, dynamic>;
+          channelName = channelData['channel'] as String?;
+        } catch (e) {
+          onError?.call(
+            ConnectionException('Failed to decode unsubscription data: $e'),
+          );
+          return;
         }
-      } catch (e) {
-        onError?.call(
-          ConnectionException('Failed to decode unsubscription data: $e'),
-        );
+      } else if (channelName == null && data is Map<String, dynamic>) {
+        channelName = data['channel'] as String?;
+      }
+
+      if (channelName != null) {
+        final channel = _channels[channelName];
+        channel?.handleUnsubscriptionSucceeded();
       }
     } else {
       // Handle channel events

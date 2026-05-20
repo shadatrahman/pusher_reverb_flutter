@@ -92,10 +92,12 @@ void main() {
         final channel = client.subscribeToChannel('test-channel');
         expect(channel.state, ChannelState.subscribing);
 
-        // Act
+        // Act - real Pusher/Reverb protocol: channel name at the top level,
+        // data is an empty object for public/private channels.
         final message = jsonEncode({
           'event': 'pusher_internal:subscription_succeeded',
-          'data': jsonEncode({'channel': 'test-channel'}),
+          'channel': 'test-channel',
+          'data': '{}',
         });
         streamController.add(message);
 
@@ -103,6 +105,55 @@ void main() {
         await Future.delayed(Duration.zero);
         expect(channel.state, ChannelState.subscribed);
       });
+
+      test(
+        'handles subscription_succeeded with channel nested in data',
+        () async {
+          // Arrange - legacy/alternate payload with channel inside data.
+          await client.connect();
+          final channel = client.subscribeToChannel('test-channel');
+          expect(channel.state, ChannelState.subscribing);
+
+          // Act
+          final message = jsonEncode({
+            'event': 'pusher_internal:subscription_succeeded',
+            'data': jsonEncode({'channel': 'test-channel'}),
+          });
+          streamController.add(message);
+
+          // Assert
+          await Future.delayed(Duration.zero);
+          expect(channel.state, ChannelState.subscribed);
+        },
+      );
+
+      test(
+        'whisper works after protocol subscription_succeeded (issue #7)',
+        () async {
+          // Arrange
+          await client.connect();
+          final channel = client.subscribeToChannel('test-channel');
+
+          // Act - server confirms subscription using the real protocol shape.
+          streamController.add(
+            jsonEncode({
+              'event': 'pusher_internal:subscription_succeeded',
+              'channel': 'test-channel',
+              'data': '{}',
+            }),
+          );
+          await Future.delayed(Duration.zero);
+
+          // Assert - channel is subscribed and whisper does not throw.
+          expect(channel.state, ChannelState.subscribed);
+          clearInteractions(mockSink);
+          channel.whisper('typing', {'name': 'Ada'});
+          final captured = verify(mockSink.add(captureAny)).captured;
+          final sent = jsonDecode(captured.single as String);
+          expect(sent['event'], 'client-typing');
+          expect(sent['channel'], 'test-channel');
+        },
+      );
     });
 
     group('Channel Unsubscription', () {
@@ -132,7 +183,8 @@ void main() {
         final channel = client.subscribeToChannel('test-channel');
         final message = jsonEncode({
           'event': 'pusher_internal:subscription_succeeded',
-          'data': jsonEncode({'channel': 'test-channel'}),
+          'channel': 'test-channel',
+          'data': '{}',
         });
         streamController.add(message);
         await Future.delayed(Duration.zero);
@@ -141,7 +193,8 @@ void main() {
         // Act
         final unsubMessage = jsonEncode({
           'event': 'pusher_internal:unsubscription_succeeded',
-          'data': jsonEncode({'channel': 'test-channel'}),
+          'channel': 'test-channel',
+          'data': '{}',
         });
         streamController.add(unsubMessage);
 

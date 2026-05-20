@@ -1,3 +1,16 @@
+## 0.0.7
+
+### Bug Fixes
+
+- **Fixed channel stuck in `subscribing` state (whisper unusable)**: `subscription_succeeded`/`unsubscription_succeeded` confirmations were never applied to the channel, so `channel.state` stayed `subscribing` even after the server confirmed.
+  - Root cause: the channel name was read from a nested `data['channel']` field, but the Pusher/Reverb protocol sends `channel` at the top level of the message.
+  - Now reads `channel` from the message top level, with a fallback to nested `data` for compatibility.
+  - Fixes `whisper()` throwing `StateError: Channel must be subscribed` on real Reverb servers (issue #7).
+
+### Documentation
+
+- **Fixed whisper example race**: README Example 8 now waits for `ChannelState.subscribed` (via `addStateListener`) before calling `whisper()`, since `subscribe()` returns before the server confirms the subscription.
+
 ## 0.0.6
 
 ### Documentation
