@@ -673,7 +673,11 @@ class ReverbClient {
     );
 
     _channels[channelName] = channel;
-    channel.subscribe();
+    channel.subscribe().catchError(
+      (e) => onError?.call(ConnectionException(
+        'Failed to subscribe to $channelName: $e',
+      )),
+    );
 
     return channel;
   }
@@ -732,7 +736,11 @@ class ReverbClient {
     );
 
     _channels[channelName] = channel;
-    channel.subscribe();
+    channel.subscribe().catchError(
+      (e) => onError?.call(ConnectionException(
+        'Failed to subscribe to $channelName: $e',
+      )),
+    );
 
     return channel;
   }
@@ -887,7 +895,26 @@ class ReverbClient {
         // Reset reconnection counter on successful connection
         _reconnectAttempts = 0;
         _setConnectionState(ConnectionState.connected);
+        // Snapshot channels before firing onConnected — the callback may add
+        // new channels, which must not be double-subscribed by the loop below.
+        final channelsToResubscribe = _channels.values.toList();
         onConnected?.call(socketId);
+        // Resubscribe all pre-existing channels. The server has no knowledge
+        // of previous subscriptions after a new WebSocket connection is made.
+        for (final channel in channelsToResubscribe) {
+          // Skip channels removed/replaced during onConnected (e.g. user called
+          // unsubscribeFromChannel inside the callback).
+          if (_channels[channel.name] != channel) continue;
+          channel.resetSubscriptionState();
+          if (channel is PrivateChannel && socketId != null) {
+            channel.socketId = socketId!;
+          }
+          channel.subscribe().catchError(
+            (e) => onError?.call(ConnectionException(
+              'Failed to resubscribe to ${channel.name}: $e',
+            )),
+          );
+        }
       } catch (e) {
         onError?.call(
           ConnectionException('Failed to decode connection data: $e'),

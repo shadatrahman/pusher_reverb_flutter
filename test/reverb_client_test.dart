@@ -1001,6 +1001,388 @@ void main() {
       );
 
       test(
+        'channels are resubscribed after reconnection',
+        () async {
+          // Arrange
+          final streamController1 = StreamController<dynamic>.broadcast();
+          final streamController2 = StreamController<dynamic>.broadcast();
+          int channelFactoryCallCount = 0;
+          final List<MockWebSocketSink> sinks = [];
+
+          final client = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-key',
+            channelFactory: (_) {
+              channelFactoryCallCount++;
+              final channel = MockWebSocketChannel();
+              final sink = MockWebSocketSink();
+              sinks.add(sink);
+              when(channel.stream).thenAnswer(
+                (_) => channelFactoryCallCount == 1
+                    ? streamController1.stream
+                    : streamController2.stream,
+              );
+              when(channel.sink).thenReturn(sink);
+              return channel;
+            },
+          );
+
+          // Act - Initial connection + subscribe
+          await client.connect();
+          streamController1.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-1', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          client.subscribeToChannel('my-channel');
+          expect(client.getChannel('my-channel'), isNotNull);
+
+          // Trigger disconnect → auto-reconnect
+          streamController1.close();
+          await Future.delayed(Duration(seconds: 3));
+
+          // Simulate successful reconnection
+          streamController2.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-2', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          // Assert: second sink received a subscribe message for 'my-channel'
+          final captured = verify(sinks[1].add(captureAny)).captured;
+          final subscribeMessages = captured.where((m) {
+            try {
+              final decoded = jsonDecode(m as String) as Map<String, dynamic>;
+              final data = decoded['data'] as Map<String, dynamic>;
+              return decoded['event'] == 'pusher:subscribe' &&
+                  data['channel'] == 'my-channel';
+            } catch (_) {
+              return false;
+            }
+          }).toList();
+          expect(subscribeMessages, isNotEmpty,
+              reason: 'channel should be resubscribed after reconnect');
+
+          // Channel object should still be accessible
+          expect(client.getChannel('my-channel'), isNotNull);
+
+          streamController2.close();
+          client.disconnect();
+        },
+      );
+
+      test(
+        'multiple channels are all resubscribed after reconnection',
+        () async {
+          // Arrange
+          final streamController1 = StreamController<dynamic>.broadcast();
+          final streamController2 = StreamController<dynamic>.broadcast();
+          int channelFactoryCallCount = 0;
+          final List<MockWebSocketSink> sinks = [];
+
+          final client = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-key',
+            channelFactory: (_) {
+              channelFactoryCallCount++;
+              final channel = MockWebSocketChannel();
+              final sink = MockWebSocketSink();
+              sinks.add(sink);
+              when(channel.stream).thenAnswer(
+                (_) => channelFactoryCallCount == 1
+                    ? streamController1.stream
+                    : streamController2.stream,
+              );
+              when(channel.sink).thenReturn(sink);
+              return channel;
+            },
+          );
+
+          // Act - Initial connection + subscribe to 2 channels
+          await client.connect();
+          streamController1.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-1', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          client.subscribeToChannel('channel-a');
+          client.subscribeToChannel('channel-b');
+
+          // Trigger disconnect → auto-reconnect
+          streamController1.close();
+          await Future.delayed(Duration(seconds: 3));
+
+          // Simulate successful reconnection
+          streamController2.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-2', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          // Assert: second sink received subscribe for both channels
+          final captured = verify(sinks[1].add(captureAny)).captured;
+
+          bool hasChannelA = captured.any((m) {
+            try {
+              final decoded = jsonDecode(m as String) as Map<String, dynamic>;
+              if (decoded['event'] != 'pusher:subscribe') return false;
+              final data = decoded['data'] as Map<String, dynamic>;
+              return data['channel'] == 'channel-a';
+            } catch (_) {
+              return false;
+            }
+          });
+          bool hasChannelB = captured.any((m) {
+            try {
+              final decoded = jsonDecode(m as String) as Map<String, dynamic>;
+              if (decoded['event'] != 'pusher:subscribe') return false;
+              final data = decoded['data'] as Map<String, dynamic>;
+              return data['channel'] == 'channel-b';
+            } catch (_) {
+              return false;
+            }
+          });
+
+          expect(hasChannelA, isTrue, reason: 'channel-a should resubscribe');
+          expect(hasChannelB, isTrue, reason: 'channel-b should resubscribe');
+
+          streamController2.close();
+          client.disconnect();
+        },
+      );
+
+      test(
+        'private channel socketId updated to new socketId on reconnect',
+        () async {
+          // Arrange
+          final streamController1 = StreamController<dynamic>.broadcast();
+          final streamController2 = StreamController<dynamic>.broadcast();
+          int channelFactoryCallCount = 0;
+          final List<String> authorizerSocketIds = [];
+
+          final client = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-key',
+            authEndpoint: 'https://example.com/auth',
+            // Throw immediately after capturing socketId to prevent real HTTP calls.
+            // Auth errors are surfaced via onError; onError is wired to ignore them.
+            authorizer: (channelName, socketId) async {
+              authorizerSocketIds.add(socketId);
+              throw Exception('test-abort-no-http');
+            },
+            onError: (_) {}, // swallow expected auth errors
+            channelFactory: (_) {
+              channelFactoryCallCount++;
+              final channel = MockWebSocketChannel();
+              final sink = MockWebSocketSink();
+              when(channel.stream).thenAnswer(
+                (_) => channelFactoryCallCount == 1
+                    ? streamController1.stream
+                    : streamController2.stream,
+              );
+              when(channel.sink).thenReturn(sink);
+              return channel;
+            },
+          );
+
+          // Connect and establish socket-1
+          await client.connect();
+          streamController1.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-1', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+          expect(client.socketId, 'socket-1');
+
+          // Subscribe to private channel — baked in with socket-1
+          final privateChannel = client.subscribeToPrivateChannel(
+            'private-test',
+          );
+          expect(privateChannel.socketId, 'socket-1');
+
+          // Trigger disconnect → auto-reconnect
+          streamController1.close();
+          await Future.delayed(Duration(seconds: 3));
+
+          // Simulate successful reconnection with new socket ID
+          streamController2.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-2', 'activity_timeout': 30}),
+          }));
+          // Wait for authorizer async call to fire
+          await Future.delayed(Duration(milliseconds: 100));
+
+          // Assert: channel's socketId field updated to new socket ID
+          expect(privateChannel.socketId, 'socket-2',
+              reason: 'private channel must use new socket ID on reconnect');
+
+          // Assert: authorizer was called with new socket ID (not stale socket-1)
+          expect(authorizerSocketIds.last, 'socket-2',
+              reason: 'auth request must use new socket ID');
+
+          streamController2.close();
+          client.disconnect();
+        },
+      );
+
+      test(
+        'new channel subscribed inside onConnected is not double-subscribed',
+        () async {
+          // Arrange
+          final streamController1 = StreamController<dynamic>.broadcast();
+          final streamController2 = StreamController<dynamic>.broadcast();
+          int channelFactoryCallCount = 0;
+          final List<MockWebSocketSink> sinks = [];
+
+          late ReverbClient client;
+          client = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-key',
+            onConnected: (_) {
+              // Subscribe to a NEW channel inside onConnected during reconnect
+              if (client.getChannel('channel-new') == null) {
+                client.subscribeToChannel('channel-new');
+              }
+            },
+            channelFactory: (_) {
+              channelFactoryCallCount++;
+              final channel = MockWebSocketChannel();
+              final sink = MockWebSocketSink();
+              sinks.add(sink);
+              when(channel.stream).thenAnswer(
+                (_) => channelFactoryCallCount == 1
+                    ? streamController1.stream
+                    : streamController2.stream,
+              );
+              when(channel.sink).thenReturn(sink);
+              return channel;
+            },
+          );
+
+          // Initial connect
+          await client.connect();
+          streamController1.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-1', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          // Trigger disconnect → auto-reconnect
+          streamController1.close();
+          await Future.delayed(Duration(seconds: 3));
+
+          // Simulate reconnection — onConnected fires and subscribes 'channel-new'
+          clearInteractions(sinks[1]);
+          streamController2.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-2', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          // Count subscribe messages for 'channel-new' on the reconnect sink
+          final captured = verify(sinks[1].add(captureAny)).captured;
+          final subscribeCount = captured.where((m) {
+            try {
+              final decoded = jsonDecode(m as String) as Map<String, dynamic>;
+              final data = decoded['data'] as Map<String, dynamic>;
+              return decoded['event'] == 'pusher:subscribe' &&
+                  data['channel'] == 'channel-new';
+            } catch (_) {
+              return false;
+            }
+          }).length;
+
+          expect(subscribeCount, equals(1),
+              reason: 'channel-new added in onConnected must be subscribed exactly once');
+
+          streamController2.close();
+          client.disconnect();
+        },
+      );
+
+      test(
+        'channel unsubscribed inside onConnected is not resubscribed by reconnect loop',
+        () async {
+          // Arrange
+          final streamController1 = StreamController<dynamic>.broadcast();
+          final streamController2 = StreamController<dynamic>.broadcast();
+          int channelFactoryCallCount = 0;
+          final List<MockWebSocketSink> sinks = [];
+
+          late ReverbClient client;
+          client = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-key',
+            onConnected: (_) {
+              // Unsubscribe channel-a during reconnect callback
+              client.unsubscribeFromChannel('channel-a');
+            },
+            channelFactory: (_) {
+              channelFactoryCallCount++;
+              final channel = MockWebSocketChannel();
+              final sink = MockWebSocketSink();
+              sinks.add(sink);
+              when(channel.stream).thenAnswer(
+                (_) => channelFactoryCallCount == 1
+                    ? streamController1.stream
+                    : streamController2.stream,
+              );
+              when(channel.sink).thenReturn(sink);
+              return channel;
+            },
+          );
+
+          // Initial connect and subscribe
+          await client.connect();
+          streamController1.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-1', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+          client.subscribeToChannel('channel-a');
+
+          // Trigger disconnect → auto-reconnect
+          streamController1.close();
+          await Future.delayed(Duration(seconds: 3));
+
+          // Simulate reconnection — onConnected fires and unsubscribes channel-a
+          clearInteractions(sinks[1]);
+          streamController2.add(jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-2', 'activity_timeout': 30}),
+          }));
+          await Future.delayed(Duration.zero);
+
+          // Assert: channel-a must NOT have a subscribe message (unsubscribe is OK)
+          final captured = verify(sinks[1].add(captureAny)).captured;
+          final resubscribed = captured.any((m) {
+            try {
+              final decoded = jsonDecode(m as String) as Map<String, dynamic>;
+              final data = decoded['data'] as Map<String, dynamic>;
+              return decoded['event'] == 'pusher:subscribe' &&
+                  data['channel'] == 'channel-a';
+            } catch (_) {
+              return false;
+            }
+          });
+          expect(resubscribed, isFalse,
+              reason: 'disposed channel must not be ghost-resubscribed');
+          expect(client.getChannel('channel-a'), isNull,
+              reason: 'channel-a must not be in _channels after unsubscribe');
+
+          streamController2.close();
+          client.disconnect();
+        },
+      );
+
+      test(
         'onConnected callback fires after successful reconnection',
         () async {
           // Arrange

@@ -22,7 +22,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pusher_reverb_flutter: ^0.0.4
+  pusher_reverb_flutter: ^0.0.8
 ```
 
 Then run:

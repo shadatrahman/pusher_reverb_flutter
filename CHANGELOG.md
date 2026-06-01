@@ -1,3 +1,17 @@
+## 0.0.8
+
+### Bug Fixes
+
+- **Fixed channels not resubscribing after reconnect**: After an unexpected disconnect and automatic reconnect, previously subscribed channels were silently lost. The server has no knowledge of prior subscriptions on a new WebSocket connection, but the client held stale channel objects — calling `subscribeToChannel` again returned the cached object without resubscribing. Now all channels are automatically resubscribed when `connection_established` is received.
+
+- **Fixed private/presence/encrypted channels using stale socket ID on reconnect**: `PrivateChannel.socketId` was a `final` field baked in at construction time. On reconnect the server assigns a new socket ID, but the channel was still authenticating with the original one — causing auth to fail and the subscription to silently drop. The socket ID is now updated to the live connection's value before each resubscription attempt.
+
+- **Fixed ghost subscription when channel is unsubscribed inside `onConnected`**: If a channel was removed via `unsubscribeFromChannel` inside the `onConnected` callback during reconnect, the reconnect loop still processed it from a snapshot — resubscribing a disposed channel on the server with no client reference. The loop now skips channels that are no longer in the active channel map.
+
+- **Fixed double-subscribe for new channels added inside `onConnected`**: A channel first subscribed inside the `onConnected` callback would be subscribed once by `subscribeToChannel` and then subscribed again by the reconnect loop, sending two `pusher:subscribe` messages. The channel snapshot is now taken before `onConnected` fires.
+
+- **Fixed unhandled Future rejections from auth failures on private/presence channels**: Auth errors from `subscribeToPrivateChannel` and `subscribeToPresenceChannel` (initial and reconnect) were becoming unhandled rejected Futures. Errors are now routed through the client's `onError` callback.
+
 ## 0.0.7
 
 ### Bug Fixes

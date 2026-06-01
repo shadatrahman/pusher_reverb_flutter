@@ -99,6 +99,12 @@ class Channel {
     _sendMessage(_encodeMessage(message));
   }
 
+  /// Resets subscription state to unsubscribed without sending an unsubscribe message.
+  /// Used internally when reconnecting so subscribe() can be called again.
+  void resetSubscriptionState() {
+    _setState(ChannelState.unsubscribed);
+  }
+
   /// Unsubscribes from the channel.
   Future<void> unsubscribe() async {
     if (_state == ChannelState.unsubscribed ||

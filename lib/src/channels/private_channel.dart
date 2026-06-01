@@ -20,7 +20,8 @@ class PrivateChannel extends Channel {
   final String authEndpoint;
 
   /// The socket ID used for authentication.
-  final String socketId;
+  /// Not final — updated on reconnect so auth uses the current connection's socket ID.
+  String socketId;
 
   /// Creates a new PrivateChannel instance.
   ///
