@@ -87,6 +87,7 @@ php artisan reverb:start
   - [Flutter Widget Integration](#example-6-using-streambuilder-in-flutter-widgets)
   - [Connection Lifecycle](#example-7-connection-lifecycle-and-enhanced-callbacks)
   - [Whisper (Client Events)](#example-8-whisper--client-to-client-events)
+  - [Presence Channels](#example-9-presence-channels--tracking-whos-online)
 - [API Key and Cluster Support](#api-key-and-cluster-support)
 - [Configuration](#configuration)
 - [Error Handling](#error-handling-and-exceptions)
@@ -622,6 +623,67 @@ channel.bind('client-typing', (data) {
 - Event name is auto-prefixed with `client-` (e.g. `'typing'` → `'client-typing'`). Passing `'client-typing'` directly also works — no double-prefix.
 - Laravel Reverb requires `client-events` to be enabled on the channel in `config/broadcasting.php`.
 
+### Example 9: Presence Channels — Tracking Who's Online
+
+Presence channels extend private channels with member awareness: who is currently subscribed, plus live join/leave notifications. Useful for viewer counts, "who's in this room" lists, and online-status indicators.
+
+```dart
+final client = ReverbClient.instance(
+  host: 'localhost',
+  port: 8080,
+  appKey: 'your-app-key',
+  authorizer: myAuthorizer,
+  authEndpoint: 'http://localhost:8000/broadcasting/auth',
+);
+
+await client.connect();
+
+// channelData is sent to your auth endpoint and echoed back by the server
+// as each member's info (e.g. name, avatar) — the server is the source of
+// truth and may override or ignore what you send here.
+final room = client.subscribeToPresenceChannel(
+  'presence-room-1',
+  channelData: {'user_id': 'alice', 'user_info': {'name': 'Alice'}},
+);
+
+// Initial member list is populated once the server confirms subscription.
+room.addStateListener((state) {
+  if (state == ChannelState.subscribed) {
+    print('Currently online: ${room.memberCount}');
+    for (final member in room.members) {
+      print('${member.id}: ${member.info}');
+    }
+  }
+});
+
+// Live updates as people join/leave.
+room.bind('pusher:member_added', (event, data) {
+  print('Joined: ${data['user_id']}');
+});
+
+room.bind('pusher:member_removed', (event, data) {
+  print('Left: ${data['user_id']}');
+});
+```
+
+**Laravel Backend Setup for Presence Channels:**
+
+```php
+use Illuminate\Support\Facades\Broadcast;
+
+// Returning an array (not a boolean) from a presence channel's auth
+// callback is what makes it a presence channel — the array becomes
+// each member's channel_data.
+Broadcast::channel('presence-room-1', function ($user) {
+    return ['id' => $user->id, 'name' => $user->name];
+});
+```
+
+**Notes:**
+- Channel name must start with `presence-`.
+- Requires `authorizer` and `authEndpoint` to be configured on the client, same as private channels.
+- `members` / `memberCount` reflect the live state and update automatically on `pusher:member_added`/`pusher:member_removed` — no need to track membership yourself.
+
 ## 🔑 API Key and Cluster Support
 
 ### API Key Authentication
@@ -1101,6 +1163,7 @@ InvalidChannelNameException: Private channel name must start with "private-" pre
 - `disconnect()` - Disconnect from the server
 - `channel(String name)` - Subscribe to a public channel
 - `privateChannel(String name)` - Subscribe to a private channel
+- `subscribeToPresenceChannel(String name, {Map<String, dynamic>? channelData})` - Subscribe to a presence channel
 - `encryptedChannel(String name, {required String encryptionMasterKey})` - Subscribe to an encrypted channel
 - `onConnectionStateChange` - Stream of connection state changes
 - `socketId` - Get the current socket ID
@@ -1133,6 +1196,19 @@ Extends `PrivateChannel` with automatic event decryption using AES-256-CBC encry
 - Algorithm: AES-256-CBC
 - Key Format: Base64-encoded 32-byte key
 - Event Format: `{ciphertext: string, nonce: string}`
+
+### PresenceChannel
+
+Extends `PrivateChannel` with member tracking. All `PrivateChannel` and `Channel` methods are available.
+
+- `members` - `List<PresenceMember>` of currently subscribed members
+- `memberCount` - Number of currently subscribed members
+- `channelData` - The `channel_data` passed when subscribing
+
+**Special Events:**
+
+- `pusher:member_added` - Emitted when a member joins; `data` is `{user_id, user_info}`
+- `pusher:member_removed` - Emitted when a member leaves; `data` is `{user_id}`
 
 ### ConnectionState
 

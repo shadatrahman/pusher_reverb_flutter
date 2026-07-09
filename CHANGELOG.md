@@ -1,3 +1,13 @@
+## 0.0.9
+
+### Bug Fixes
+
+- **Fixed presence channel `member_added`/`member_removed` never firing on real servers** (issue #9): Laravel Reverb sends these as `pusher_internal:member_added`/`pusher_internal:member_removed` on the wire, with a JSON-encoded string in `data`. `PresenceChannel` only listened for the client-facing `pusher:member_added`/`pusher:member_removed` names and expected `data` to already be a decoded `Map`. The initial member list (from `subscription_succeeded`) worked, but live join/leave updates were silently dropped. The client now translates and decodes these events before dispatching to `PresenceChannel`, mirroring the existing `subscription_succeeded` fix.
+
+### Documentation
+
+- **Added Presence Channels documentation**: New usage example, Laravel backend setup, and `PresenceChannel` API reference — this feature existed since 0.0.8 but was undocumented.
+
 ## 0.0.8
 
 ### Bug Fixes
