@@ -975,6 +975,39 @@ class ReverbClient {
         final channel = _channels[channelName];
         channel?.handleUnsubscriptionSucceeded();
       }
+    } else if (event == 'pusher_internal:member_added' ||
+        event == 'pusher_internal:member_removed') {
+      // Per the Pusher/Reverb protocol these arrive with the channel name at
+      // the top level and a JSON-encoded string in `data` (e.g.
+      // '{"user_id":"1","user_info":{...}}'). PresenceChannel listens for the
+      // client-facing 'pusher:member_added'/'pusher:member_removed' names, so
+      // translate here the same way pusher-js does.
+      final channelName = decodedMessage['channel'] as String?;
+      if (channelName == null) return;
+
+      Map<String, dynamic> memberData;
+      if (data is String && data.isNotEmpty) {
+        try {
+          memberData = jsonDecode(data) as Map<String, dynamic>;
+        } catch (e) {
+          onError?.call(
+            ConnectionException('Failed to decode member event data: $e'),
+          );
+          return;
+        }
+      } else if (data is Map<String, dynamic>) {
+        memberData = data;
+      } else {
+        memberData = const {};
+      }
+
+      final channel = _channels[channelName];
+      if (channel is PresenceChannel) {
+        final translatedEvent = event == 'pusher_internal:member_added'
+            ? 'pusher:member_added'
+            : 'pusher:member_removed';
+        channel.handleEvent(translatedEvent, memberData);
+      }
     } else {
       // Handle channel events
       final channelName = decodedMessage['channel'] as String?;

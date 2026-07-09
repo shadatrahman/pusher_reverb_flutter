@@ -6,6 +6,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pusher_reverb_flutter/src/client/reverb_client.dart';
 import 'package:pusher_reverb_flutter/src/channels/channel.dart';
+import 'package:pusher_reverb_flutter/src/channels/presence_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'reverb_client_test.mocks.dart';
@@ -293,6 +294,138 @@ void main() {
         await Future.delayed(Duration.zero);
         expect(receivedEvent, isNull);
       });
+    });
+
+    group('Presence Member Events (wire protocol)', () {
+      late MockWebSocketChannel presenceMockChannel;
+      late MockWebSocketSink presenceMockSink;
+      late StreamController<dynamic> presenceStreamController;
+      late ReverbClient presenceClient;
+
+      setUp(() {
+        presenceMockChannel = MockWebSocketChannel();
+        presenceMockSink = MockWebSocketSink();
+        presenceStreamController = StreamController<dynamic>.broadcast();
+
+        when(presenceMockChannel.stream).thenAnswer(
+          (_) => presenceStreamController.stream,
+        );
+        when(presenceMockChannel.sink).thenReturn(presenceMockSink);
+
+        presenceClient = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'app-key',
+          authorizer: (channelName, socketId) async => {},
+          authEndpoint: 'https://example.com/auth',
+          channelFactory: (_) => presenceMockChannel,
+        );
+      });
+
+      tearDown(() {
+        presenceStreamController.close();
+        presenceClient.disconnect();
+      });
+
+      Future<PresenceChannel> connectAndSubscribe(String channelName) async {
+        await presenceClient.connect();
+        presenceStreamController.add(
+          jsonEncode({
+            'event': 'pusher:connection_established',
+            'data': jsonEncode({'socket_id': 'socket-1'}),
+          }),
+        );
+        await Future.delayed(Duration.zero);
+        return presenceClient.subscribeToPresenceChannel(channelName);
+      }
+
+      test(
+        'translates pusher_internal:member_added into member tracking',
+        () async {
+          // Arrange - real Reverb wire format: channel at top level, data is
+          // a JSON-encoded string.
+          final channel = await connectAndSubscribe('presence-room');
+
+          // Act
+          presenceStreamController.add(
+            jsonEncode({
+              'event': 'pusher_internal:member_added',
+              'channel': 'presence-room',
+              'data': jsonEncode({
+                'user_id': '42',
+                'user_info': {'name': 'Ada'},
+              }),
+            }),
+          );
+          await Future.delayed(Duration.zero);
+
+          // Assert
+          expect(channel.memberCount, 1);
+          expect(channel.members.single.id, '42');
+          expect(channel.members.single.info['name'], 'Ada');
+        },
+      );
+
+      test(
+        'translates pusher_internal:member_removed into member tracking',
+        () async {
+          // Arrange
+          final channel = await connectAndSubscribe('presence-room');
+          presenceStreamController.add(
+            jsonEncode({
+              'event': 'pusher_internal:member_added',
+              'channel': 'presence-room',
+              'data': jsonEncode({'user_id': '42', 'user_info': {}}),
+            }),
+          );
+          await Future.delayed(Duration.zero);
+          expect(channel.memberCount, 1);
+
+          // Act
+          presenceStreamController.add(
+            jsonEncode({
+              'event': 'pusher_internal:member_removed',
+              'channel': 'presence-room',
+              'data': jsonEncode({'user_id': '42'}),
+            }),
+          );
+          await Future.delayed(Duration.zero);
+
+          // Assert
+          expect(channel.memberCount, 0);
+        },
+      );
+
+      test(
+        'ignores member events for channels that are not presence channels',
+        () async {
+          // Arrange - a plain channel happens to be named like a presence one
+          // but was created via subscribeToChannel, so it must not crash or
+          // otherwise mishandle a member_added frame.
+          await presenceClient.connect();
+          presenceStreamController.add(
+            jsonEncode({
+              'event': 'pusher:connection_established',
+              'data': jsonEncode({'socket_id': 'socket-1'}),
+            }),
+          );
+          await Future.delayed(Duration.zero);
+          final channel = presenceClient.subscribeToChannel('test-channel');
+
+          // Act
+          presenceStreamController.add(
+            jsonEncode({
+              'event': 'pusher_internal:member_added',
+              'channel': 'test-channel',
+              'data': jsonEncode({'user_id': '42', 'user_info': {}}),
+            }),
+          );
+          await Future.delayed(Duration.zero);
+
+          // Assert - no crash, and it's simply not a PresenceChannel.
+          expect(channel, isNot(isA<PresenceChannel>()));
+        },
+      );
     });
 
     group('Channel Management', () {
