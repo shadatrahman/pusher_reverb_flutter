@@ -7,6 +7,7 @@ import 'package:mockito/mockito.dart';
 import 'package:pusher_reverb_flutter/src/client/reverb_client.dart';
 import 'package:pusher_reverb_flutter/src/channels/channel.dart';
 import 'package:pusher_reverb_flutter/src/channels/presence_channel.dart';
+import 'package:pusher_reverb_flutter/src/models/exceptions.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'reverb_client_test.mocks.dart';
@@ -301,11 +302,13 @@ void main() {
       late MockWebSocketSink presenceMockSink;
       late StreamController<dynamic> presenceStreamController;
       late ReverbClient presenceClient;
+      dynamic lastError;
 
       setUp(() {
         presenceMockChannel = MockWebSocketChannel();
         presenceMockSink = MockWebSocketSink();
         presenceStreamController = StreamController<dynamic>.broadcast();
+        lastError = null;
 
         when(presenceMockChannel.stream).thenAnswer(
           (_) => presenceStreamController.stream,
@@ -319,6 +322,7 @@ void main() {
           authorizer: (channelName, socketId) async => {},
           authEndpoint: 'https://example.com/auth',
           channelFactory: (_) => presenceMockChannel,
+          onError: (e) => lastError = e,
         );
       });
 
@@ -424,6 +428,28 @@ void main() {
 
           // Assert - no crash, and it's simply not a PresenceChannel.
           expect(channel, isNot(isA<PresenceChannel>()));
+        },
+      );
+
+      test(
+        'reports an error instead of crashing on malformed member_added data',
+        () async {
+          // Arrange
+          final channel = await connectAndSubscribe('presence-room');
+
+          // Act - data is not valid JSON.
+          presenceStreamController.add(
+            jsonEncode({
+              'event': 'pusher_internal:member_added',
+              'channel': 'presence-room',
+              'data': 'not-json{{{',
+            }),
+          );
+          await Future.delayed(Duration.zero);
+
+          // Assert - error surfaced via onError, member list untouched.
+          expect(lastError, isA<ConnectionException>());
+          expect(channel.memberCount, 0);
         },
       );
     });
