@@ -40,33 +40,35 @@ class _FakeStreamChannel_1<T> extends _i1.SmartFake
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
-  MockWebSocketChannel() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   _i4.Future<void> get ready =>
       (super.noSuchMethod(
             Invocation.getter(#ready),
             returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
           as _i4.Future<void>);
-
-  @override
-  _i4.Stream<dynamic> get stream =>
-      (super.noSuchMethod(
-            Invocation.getter(#stream),
-            returnValue: _i4.Stream<dynamic>.empty(),
-          )
-          as _i4.Stream<dynamic>);
 
   @override
   _i2.WebSocketSink get sink =>
       (super.noSuchMethod(
             Invocation.getter(#sink),
             returnValue: _FakeWebSocketSink_0(this, Invocation.getter(#sink)),
+            returnValueForMissingStub: _FakeWebSocketSink_0(
+              this,
+              Invocation.getter(#sink),
+            ),
           )
           as _i2.WebSocketSink);
+
+  @override
+  _i4.Stream<dynamic> get stream =>
+      (super.noSuchMethod(
+            Invocation.getter(#stream),
+            returnValue: _i4.Stream<dynamic>.empty(),
+            returnValueForMissingStub: _i4.Stream<dynamic>.empty(),
+          )
+          as _i4.Stream<dynamic>);
 
   @override
   void pipe(_i3.StreamChannel<dynamic>? other) => super.noSuchMethod(
@@ -84,6 +86,10 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
               this,
               Invocation.method(#transform, [transformer]),
             ),
+            returnValueForMissingStub: _FakeStreamChannel_1<S>(
+              this,
+              Invocation.method(#transform, [transformer]),
+            ),
           )
           as _i3.StreamChannel<S>);
 
@@ -94,6 +100,10 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
       (super.noSuchMethod(
             Invocation.method(#transformStream, [transformer]),
             returnValue: _FakeStreamChannel_1<dynamic>(
+              this,
+              Invocation.method(#transformStream, [transformer]),
+            ),
+            returnValueForMissingStub: _FakeStreamChannel_1<dynamic>(
               this,
               Invocation.method(#transformStream, [transformer]),
             ),
@@ -110,6 +120,10 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
               this,
               Invocation.method(#transformSink, [transformer]),
             ),
+            returnValueForMissingStub: _FakeStreamChannel_1<dynamic>(
+              this,
+              Invocation.method(#transformSink, [transformer]),
+            ),
           )
           as _i3.StreamChannel<dynamic>);
 
@@ -120,6 +134,10 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
       (super.noSuchMethod(
             Invocation.method(#changeStream, [change]),
             returnValue: _FakeStreamChannel_1<dynamic>(
+              this,
+              Invocation.method(#changeStream, [change]),
+            ),
+            returnValueForMissingStub: _FakeStreamChannel_1<dynamic>(
               this,
               Invocation.method(#changeStream, [change]),
             ),
@@ -136,6 +154,10 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
               this,
               Invocation.method(#changeSink, [change]),
             ),
+            returnValueForMissingStub: _FakeStreamChannel_1<dynamic>(
+              this,
+              Invocation.method(#changeSink, [change]),
+            ),
           )
           as _i3.StreamChannel<dynamic>);
 
@@ -147,6 +169,54 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
               this,
               Invocation.method(#cast, []),
             ),
+            returnValueForMissingStub: _FakeStreamChannel_1<S>(
+              this,
+              Invocation.method(#cast, []),
+            ),
           )
           as _i3.StreamChannel<S>);
+}
+
+/// A class which mocks [WebSocketSink].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockWebSocketSink extends _i1.Mock implements _i2.WebSocketSink {
+  @override
+  _i4.Future<dynamic> get done =>
+      (super.noSuchMethod(
+            Invocation.getter(#done),
+            returnValue: _i4.Future<dynamic>.value(),
+            returnValueForMissingStub: _i4.Future<dynamic>.value(),
+          )
+          as _i4.Future<dynamic>);
+
+  @override
+  _i4.Future<dynamic> close([int? closeCode, String? closeReason]) =>
+      (super.noSuchMethod(
+            Invocation.method(#close, [closeCode, closeReason]),
+            returnValue: _i4.Future<dynamic>.value(),
+            returnValueForMissingStub: _i4.Future<dynamic>.value(),
+          )
+          as _i4.Future<dynamic>);
+
+  @override
+  void add(dynamic data) => super.noSuchMethod(
+    Invocation.method(#add, [data]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void addError(Object? error, [StackTrace? stackTrace]) => super.noSuchMethod(
+    Invocation.method(#addError, [error, stackTrace]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i4.Future<dynamic> addStream(_i4.Stream<dynamic>? stream) =>
+      (super.noSuchMethod(
+            Invocation.method(#addStream, [stream]),
+            returnValue: _i4.Future<dynamic>.value(),
+            returnValueForMissingStub: _i4.Future<dynamic>.value(),
+          )
+          as _i4.Future<dynamic>);
 }

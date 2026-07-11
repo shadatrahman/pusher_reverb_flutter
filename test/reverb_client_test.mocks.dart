@@ -50,15 +50,6 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
           as _i4.Future<void>);
 
   @override
-  _i4.Stream<dynamic> get stream =>
-      (super.noSuchMethod(
-            Invocation.getter(#stream),
-            returnValue: _i4.Stream<dynamic>.empty(),
-            returnValueForMissingStub: _i4.Stream<dynamic>.empty(),
-          )
-          as _i4.Stream<dynamic>);
-
-  @override
   _i2.WebSocketSink get sink =>
       (super.noSuchMethod(
             Invocation.getter(#sink),
@@ -69,6 +60,15 @@ class MockWebSocketChannel extends _i1.Mock implements _i2.WebSocketChannel {
             ),
           )
           as _i2.WebSocketSink);
+
+  @override
+  _i4.Stream<dynamic> get stream =>
+      (super.noSuchMethod(
+            Invocation.getter(#stream),
+            returnValue: _i4.Stream<dynamic>.empty(),
+            returnValueForMissingStub: _i4.Stream<dynamic>.empty(),
+          )
+          as _i4.Stream<dynamic>);
 
   @override
   void pipe(_i3.StreamChannel<dynamic>? other) => super.noSuchMethod(

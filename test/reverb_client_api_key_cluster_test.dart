@@ -1,13 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'reverb_client_api_key_cluster_test.mocks.dart';
 
+@GenerateNiceMocks([MockSpec<WebSocketChannel>(), MockSpec<WebSocketSink>()])
 void main() {
   group('ReverbClient API Key and Cluster Tests', () {
+    late MockWebSocketChannel mockChannel;
+    late MockWebSocketSink mockSink;
+    late StreamController<dynamic> streamController;
+
     setUp(() {
       ReverbClient.resetInstance();
+      mockChannel = MockWebSocketChannel();
+      mockSink = MockWebSocketSink();
+      streamController = StreamController<dynamic>.broadcast();
+      when(mockChannel.stream).thenAnswer((_) => streamController.stream);
+      when(mockChannel.sink).thenReturn(mockSink);
     });
 
     tearDown(() {
+      streamController.close();
       ReverbClient.resetInstance();
     });
 
@@ -47,6 +64,99 @@ void main() {
           throwsA(isA<ConnectionException>()),
         );
       });
+
+      test('connect() with apiKey uses channelFactory (web-compat)', () async {
+        Uri? capturedUri;
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app',
+          apiKey: 'my-api-key',
+          channelFactory: (uri) {
+            capturedUri = uri;
+            return mockChannel;
+          },
+        );
+
+        await client.connect();
+
+        expect(capturedUri, isNotNull);
+        expect(capturedUri.toString(), 'ws://localhost:8080/app/test-app');
+        client.disconnect();
+      });
+
+      test(
+        'connect() with apiKey receives connection_established (web-compat)',
+        () async {
+          String? connectedSocketId;
+          final client = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-app',
+            apiKey: 'my-api-key',
+            onConnected: (socketId) => connectedSocketId = socketId,
+            channelFactory: (_) => mockChannel,
+          );
+
+          await client.connect();
+          streamController.add(
+            jsonEncode({
+              'event': 'pusher:connection_established',
+              'data': jsonEncode({
+                'socket_id': 'socket-1',
+                'activity_timeout': 30,
+              }),
+            }),
+          );
+          await Future.delayed(Duration.zero);
+
+          expect(connectedSocketId, 'socket-1');
+          client.disconnect();
+        },
+      );
+
+      test(
+        'connect() with and without apiKey hit the same code path',
+        () async {
+          Uri? uriWithout;
+          Uri? uriWith;
+
+          final withoutKey = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-app',
+            channelFactory: (uri) {
+              uriWithout = uri;
+              return mockChannel;
+            },
+          );
+          await withoutKey.connect();
+          withoutKey.disconnect();
+
+          ReverbClient.resetInstance();
+          final sc2 = StreamController<dynamic>.broadcast();
+          final mc2 = MockWebSocketChannel();
+          final ms2 = MockWebSocketSink();
+          when(mc2.stream).thenAnswer((_) => sc2.stream);
+          when(mc2.sink).thenReturn(ms2);
+
+          final withKey = ReverbClient.forTesting(
+            host: 'localhost',
+            port: 8080,
+            appKey: 'test-app',
+            apiKey: 'my-api-key',
+            channelFactory: (uri) {
+              uriWith = uri;
+              return mc2;
+            },
+          );
+          await withKey.connect();
+          withKey.disconnect();
+          sc2.close();
+
+          expect(uriWithout.toString(), uriWith.toString());
+        },
+      );
     });
 
     group('Cluster Support', () {
