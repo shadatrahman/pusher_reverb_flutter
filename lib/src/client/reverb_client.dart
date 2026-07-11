@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:meta/meta.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/io.dart';
 import '../channels/channel.dart';
 import '../channels/private_channel.dart';
 import '../channels/presence_channel.dart';
@@ -13,6 +12,7 @@ import '../auth/authorizer.dart';
 import '../models/connection_state.dart';
 import '../models/exceptions.dart';
 import '../models/cluster_config.dart';
+import 'ws_connect.dart';
 
 /// A client for interacting with a Laravel Reverb WebSocket server.
 ///
@@ -525,23 +525,20 @@ class ReverbClient {
       final uri = _constructWebSocketUri();
 
       // Create WebSocket with API key headers if provided
-      if (apiKey != null) {
-        final headers = <String, dynamic>{
-          'Authorization': 'Bearer $apiKey',
-          ..._resolvedConfig.additionalHeaders,
-        };
-        _channel = channelFactory != null
-            ? channelFactory!(uri)
-            : IOWebSocketChannel.connect(
-                uri,
-                headers: headers,
-                pingInterval: pingInterval,
-              );
-      } else {
-        _channel = channelFactory != null
-            ? channelFactory!(uri)
-            : IOWebSocketChannel.connect(uri, pingInterval: pingInterval);
-      }
+      // Use platform-adaptive factory: native preserves apiKey headers and
+      // pingInterval; web falls back to WebSocketChannel (browser limitation).
+      _channel = channelFactory != null
+          ? channelFactory!(uri)
+          : createWebSocketChannel(
+              uri,
+              headers: apiKey != null
+                  ? {
+                      'Authorization': 'Bearer $apiKey',
+                      ..._resolvedConfig.additionalHeaders,
+                    }
+                  : null,
+              pingInterval: pingInterval,
+            );
 
       _subscription = _channel?.stream.listen(
         _handleMessage,
@@ -674,9 +671,9 @@ class ReverbClient {
 
     _channels[channelName] = channel;
     channel.subscribe().catchError(
-      (e) => onError?.call(ConnectionException(
-        'Failed to subscribe to $channelName: $e',
-      )),
+      (e) => onError?.call(
+        ConnectionException('Failed to subscribe to $channelName: $e'),
+      ),
     );
 
     return channel;
@@ -737,9 +734,9 @@ class ReverbClient {
 
     _channels[channelName] = channel;
     channel.subscribe().catchError(
-      (e) => onError?.call(ConnectionException(
-        'Failed to subscribe to $channelName: $e',
-      )),
+      (e) => onError?.call(
+        ConnectionException('Failed to subscribe to $channelName: $e'),
+      ),
     );
 
     return channel;
@@ -910,9 +907,11 @@ class ReverbClient {
             channel.socketId = socketId!;
           }
           channel.subscribe().catchError(
-            (e) => onError?.call(ConnectionException(
-              'Failed to resubscribe to ${channel.name}: $e',
-            )),
+            (e) => onError?.call(
+              ConnectionException(
+                'Failed to resubscribe to ${channel.name}: $e',
+              ),
+            ),
           );
         }
       } catch (e) {
