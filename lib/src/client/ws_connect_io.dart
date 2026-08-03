@@ -9,12 +9,9 @@ WebSocketChannel createWebSocketChannel(
   Map<String, dynamic>? headers,
   Duration? pingInterval,
 }) {
-  if (headers != null) {
-    return IOWebSocketChannel.connect(
-      uri,
-      headers: headers,
-      pingInterval: pingInterval,
-    );
-  }
-  return IOWebSocketChannel.connect(uri, pingInterval: pingInterval);
+  return IOWebSocketChannel.connect(
+    uri,
+    headers: headers,
+    pingInterval: pingInterval,
+  );
 }

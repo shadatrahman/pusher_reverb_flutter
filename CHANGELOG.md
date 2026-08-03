@@ -1,3 +1,13 @@
+## 0.0.10
+
+### Features
+
+- **Added Flutter web support** (issue #10): `connect()` unconditionally used `IOWebSocketChannel`, which pulls in `dart:io` and threw `Unsupported operation: Platform._version` at runtime in the browser — the package was unusable on web. The WebSocket is now created through a compile-time conditional export (`ws_connect.dart`), resolving to `IOWebSocketChannel` on native platforms and the browser `WebSocket` API on web. No `dart:io` code is compiled into a web build, and native behaviour is unchanged.
+
+### Behaviour Notes
+
+- **`apiKey` connection header and `pingInterval` are ignored on web**: the browser WebSocket API supports neither handshake headers nor protocol-level ping frames. The client now logs a one-time warning in debug builds when either is set on web. Channel-level auth (private/presence/encrypted) is unaffected — it goes over HTTP through the authorizer — and idle connections are still kept alive by the application-level `pusher:ping`/`pusher:pong` exchange. See the new **Platform Support** section in the README.
+
 ## 0.0.9
 
 ### Bug Fixes

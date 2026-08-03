@@ -524,19 +524,15 @@ class ReverbClient {
 
       final uri = _constructWebSocketUri();
 
-      // Create WebSocket with API key headers if provided
-      // Use platform-adaptive factory: native preserves apiKey headers and
-      // pingInterval; web falls back to WebSocketChannel (browser limitation).
+      // Create WebSocket with API key headers if provided.
+      // Use the platform-adaptive factory: native preserves headers and
+      // pingInterval; web drops both (browser WebSocket API limitation) and
+      // warns once — see ws_connect_web.dart.
       _channel = channelFactory != null
           ? channelFactory!(uri)
           : createWebSocketChannel(
               uri,
-              headers: apiKey != null
-                  ? {
-                      'Authorization': 'Bearer $apiKey',
-                      ..._resolvedConfig.additionalHeaders,
-                    }
-                  : null,
+              headers: _connectionHeaders(),
               pingInterval: pingInterval,
             );
 
@@ -568,6 +564,23 @@ class ReverbClient {
       rethrow;
     }
   }
+
+  /// Builds the handshake headers for the WebSocket connection.
+  ///
+  /// Returns `null` when there is nothing to send, so the platform factory can
+  /// skip header handling entirely. These headers are honoured on native
+  /// platforms only — the browser WebSocket API cannot set them.
+  Map<String, dynamic>? _connectionHeaders() {
+    if (apiKey == null) return null;
+    return <String, dynamic>{
+      'Authorization': 'Bearer $apiKey',
+      ..._resolvedConfig.additionalHeaders,
+    };
+  }
+
+  /// The handshake headers that would be sent for this connection. Test-only.
+  @visibleForTesting
+  Map<String, dynamic>? get debugConnectionHeaders => _connectionHeaders();
 
   /// Constructs the WebSocket URI for the connection.
   ///

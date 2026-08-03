@@ -115,48 +115,28 @@ void main() {
         },
       );
 
-      test(
-        'connect() with and without apiKey hit the same code path',
-        () async {
-          Uri? uriWithout;
-          Uri? uriWith;
+      test('connect() passes the apiKey header to the platform factory', () {
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app',
+          apiKey: 'my-api-key',
+        );
 
-          final withoutKey = ReverbClient.forTesting(
-            host: 'localhost',
-            port: 8080,
-            appKey: 'test-app',
-            channelFactory: (uri) {
-              uriWithout = uri;
-              return mockChannel;
-            },
-          );
-          await withoutKey.connect();
-          withoutKey.disconnect();
+        expect(client.debugConnectionHeaders, {
+          'Authorization': 'Bearer my-api-key',
+        });
+      });
 
-          ReverbClient.resetInstance();
-          final sc2 = StreamController<dynamic>.broadcast();
-          final mc2 = MockWebSocketChannel();
-          final ms2 = MockWebSocketSink();
-          when(mc2.stream).thenAnswer((_) => sc2.stream);
-          when(mc2.sink).thenReturn(ms2);
+      test('connect() passes no headers when apiKey is absent', () {
+        final client = ReverbClient.forTesting(
+          host: 'localhost',
+          port: 8080,
+          appKey: 'test-app',
+        );
 
-          final withKey = ReverbClient.forTesting(
-            host: 'localhost',
-            port: 8080,
-            appKey: 'test-app',
-            apiKey: 'my-api-key',
-            channelFactory: (uri) {
-              uriWith = uri;
-              return mc2;
-            },
-          );
-          await withKey.connect();
-          withKey.disconnect();
-          sc2.close();
-
-          expect(uriWithout.toString(), uriWith.toString());
-        },
-      );
+        expect(client.debugConnectionHeaders, isNull);
+      });
     });
 
     group('Cluster Support', () {

@@ -5,6 +5,7 @@ A Flutter/Dart client for Laravel Reverb, providing real-time WebSocket communic
 ## Features
 
 - 🔌 **WebSocket Connection** - Connect to Laravel Reverb servers with automatic reconnection
+- 🌐 **All Flutter Platforms** - Android, iOS, macOS, Windows, Linux and **Web** ([caveats](#-platform-support))
 - 📡 **Public Channels** - Subscribe to and receive events on public channels
 - 🔐 **Private Channels** - Secure private channel authentication with custom authorizers
 - 🔒 **Encrypted Channels** - End-to-end encryption for maximum security with AES-256-CBC
@@ -22,7 +23,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pusher_reverb_flutter: ^0.0.8
+  pusher_reverb_flutter: ^0.0.10
 ```
 
 Then run:
@@ -89,6 +90,7 @@ php artisan reverb:start
   - [Whisper (Client Events)](#example-8-whisper--client-to-client-events)
   - [Presence Channels](#example-9-presence-channels--tracking-whos-online)
 - [API Key and Cluster Support](#api-key-and-cluster-support)
+- [Platform Support](#-platform-support)
 - [Configuration](#configuration)
 - [Error Handling](#error-handling-and-exceptions)
 - [API Reference](#api-reference)
@@ -701,8 +703,8 @@ final client = ReverbClient.instance(
 
 The API key is automatically included in:
 
-- WebSocket connection headers as `Authorization: Bearer {apiKey}`
-- Private channel authentication headers
+- WebSocket connection headers as `Authorization: Bearer {apiKey}` — **native platforms only**, see [Platform Support](#-platform-support)
+- Private channel authentication headers (all platforms, including web)
 
 ### Cluster Configuration
 
@@ -787,6 +789,31 @@ final client = ReverbClient.instance(
 );
 ```
 
+## 🌐 Platform Support
+
+| Platform                              | Supported | Notes                                             |
+| ------------------------------------- | --------- | ------------------------------------------------- |
+| Android, iOS, macOS, Windows, Linux   | ✅        | Full feature set                                  |
+| Web                                   | ✅        | Two connection-level options unavailable, below   |
+
+The package picks its WebSocket implementation at compile time: `IOWebSocketChannel`
+(`dart:io`) on native platforms, and the browser `WebSocket` API on web. No `dart:io`
+code is compiled into a web build.
+
+### Web limitations
+
+The browser's WebSocket API exposes no way to set handshake headers or to send
+protocol-level ping frames. Two options are therefore **ignored on web**, and the
+client logs a one-time warning in debug builds when either is set:
+
+| Option        | Web behaviour | Workaround                                                                                                                                            |
+| ------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apiKey`      | The `Authorization: Bearer {apiKey}` **connection** header is not sent. If your server requires it to accept the handshake, the connection is rejected. | Authenticate per-channel instead — the `authorizer` callback and private/presence auth run over HTTP and still send the header on web. |
+| `pingInterval` | No WebSocket ping frames are sent. | Not usually needed: Reverb sends `pusher:ping` on an idle connection and the client replies with `pusher:pong`, which keeps most proxies from timing out. |
+
+Everything else — public, private, presence and encrypted channels, whisper,
+reconnection, connection-state streams — behaves identically on web.
+
 ## ⚙️ Configuration
 
 ### ReverbClient Options
@@ -798,7 +825,7 @@ The `ReverbClient.instance()` method accepts the following parameters:
 | `host`           | `String`                           | Yes (first call) | -                      | Reverb server hostname                           |
 | `port`           | `int`                              | Yes (first call) | -                      | Reverb server port                               |
 | `appKey`         | `String`                           | Yes (first call) | -                      | Application key for authentication               |
-| `apiKey`         | `String?`                          | No               | `null`                 | API key for authentication (NEW)                 |
+| `apiKey`         | `String?`                          | No               | `null`                 | API key for authentication. Connection header is native-only — see [Platform Support](#-platform-support) |
 | `cluster`        | `String?`                          | No               | `null`                 | Cluster identifier for predefined configs (NEW)  |
 | `wsPath`         | `String`                           | No               | `/`                    | Custom WebSocket path (e.g., `/app/websocket`)   |
 | `authorizer`     | `Authorizer`                       | No               | `null`                 | Custom authorizer function for private channels  |
@@ -808,7 +835,7 @@ The `ReverbClient.instance()` method accepts the following parameters:
 | `onReconnecting` | `void Function()?`                 | No               | `null`                 | Callback fired when attempting to reconnect      |
 | `onDisconnected` | `void Function()?`                 | No               | `null`                 | Callback fired when disconnected                 |
 | `onError`        | `void Function(dynamic error)?`    | No               | `null`                 | Callback fired on connection errors              |
-| `pingInterval`   | `Duration?`                        | No               | `null`                 | Interval for WebSocket protocol-level ping frames to prevent idle disconnections (e.g., `Duration(seconds: 15)`). If null, library default is used. |
+| `pingInterval`   | `Duration?`                        | No               | `null`                 | Interval for WebSocket protocol-level ping frames to prevent idle disconnections (e.g., `Duration(seconds: 15)`). If null, library default is used. Ignored on web — see [Platform Support](#-platform-support) |
 
 ### WebSocket Keepalive: Preventing Idle Disconnects
 
@@ -831,6 +858,11 @@ final client = ReverbClient.instance(
 - The server responds with pong frames, keeping the connection alive indefinitely.
 - This operates at the WebSocket protocol layer, below the Pusher application protocol.
 - Combined with the automatic `pusher:ping/pong` handling, your connection stays robust in all network conditions.
+
+> **Web:** `pingInterval` has no effect — the browser WebSocket API cannot send ping
+> frames, and the client logs a one-time warning if you set it. Idle connections are
+> still kept alive by the application-level `pusher:ping`/`pusher:pong` exchange. See
+> [Platform Support](#-platform-support).
 
 **Recommended values:**
 
