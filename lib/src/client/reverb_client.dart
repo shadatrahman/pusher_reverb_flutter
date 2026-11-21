@@ -94,6 +94,10 @@ class ReverbClient {
   /// Flag to track if disconnect was manual (to prevent auto-reconnect).
   bool _manualDisconnect = false;
 
+  /// Incremented on every manual disconnect; lets pending reconnect attempts
+  /// detect that they are obsolete.
+  int _lifecycleGeneration = 0;
+
   /// Callback for when the connection attempt starts.
   final void Function()? onConnecting;
 
@@ -470,7 +474,9 @@ class ReverbClient {
   void _setConnectionState(ConnectionState newState) {
     if (_currentConnectionState != newState) {
       _currentConnectionState = newState;
-      _connectionStateController.add(newState);
+      if (!_connectionStateController.isClosed) {
+        _connectionStateController.add(newState);
+      }
     }
   }
 
@@ -485,6 +491,7 @@ class ReverbClient {
       return;
     }
 
+    final generation = _lifecycleGeneration;
     _reconnectAttempts++;
 
     // Calculate delay with exponential backoff: 2^attempt seconds, capped at max
@@ -496,6 +503,11 @@ class ReverbClient {
     onReconnecting?.call();
 
     await Future.delayed(delay);
+
+    // Abort if the client was manually disconnected/reset while waiting.
+    if (_manualDisconnect || generation != _lifecycleGeneration) {
+      return;
+    }
 
     try {
       await connect();
@@ -606,6 +618,7 @@ class ReverbClient {
   void disconnect() {
     // Mark this as a manual disconnect to prevent auto-reconnect
     _manualDisconnect = true;
+    _lifecycleGeneration++;
     _reconnectAttempts = 0;
 
     _subscription?.cancel();

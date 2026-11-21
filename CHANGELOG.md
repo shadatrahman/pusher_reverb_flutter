@@ -1,3 +1,9 @@
+## 0.0.11
+
+### Bug Fixes
+
+- **Fixed `Bad state: Cannot add new events after calling close` crash during reconnect** (issue #12): a pending automatic reconnect kept running after the client was manually disconnected or reset (e.g. logout while the socket was reconnecting), then emitted a connection-state event on the already-closed controller. Reconnect attempts now re-check for manual disconnect after the backoff delay and are cancelled via a lifecycle generation counter, so an obsolete attempt can no longer revive a disconnected client. `_setConnectionState` also no longer writes to a closed controller.
+
 ## 0.0.10
 
 ### Features
